@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "inner-desktop",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "site/inner", "start"],
+      "port": 3000
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "aditya-studio-os",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "install:all": "npm --prefix site/inner install && npm --prefix site/outer install",
+    "dev": "npm run build && npm start",
+    "build": "npm --prefix site/inner run build && node scripts/stage-desktop.mjs && npm --prefix site/outer run build",
+    "start": "npm --prefix site/outer start",
+    "vercel-build": "npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "monaco-editor": "^0.56.0"
+  }
+}

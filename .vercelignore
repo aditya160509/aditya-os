@@ -1,0 +1,7 @@
+node_modules
+site/inner/build
+site/outer/public
+site/outer/static/desktop
+dist
+assets
+source

@@ -1,0 +1,21 @@
+{
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": "site/outer/public",
+  "installCommand": "npm run install:all",
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/index" },
+    { "source": "/desktop/openwebui/api/:path*", "destination": "/api/index" },
+    { "source": "/desktop/openwebui/:path*", "destination": "/desktop/openwebui/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/wallpapers/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/desktop/static/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    }
+  ]
+}
