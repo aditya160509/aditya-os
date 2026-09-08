@@ -1,6 +1,5 @@
-import React, { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import React, { FormEvent, useEffect, useRef, useState } from 'react';
 import Editor, { loader } from '@monaco-editor/react';
-import * as LW from 'lightweight-charts';
 import Window from '../os/Window';
 import { playUiSound } from '../../utils/sound';
 import { FS_ROOT, FSNode, fsJoin, fsResolve, openApp } from '../../utils/filesystem';

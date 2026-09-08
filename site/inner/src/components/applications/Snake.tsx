@@ -62,10 +62,11 @@ const Snake: React.FC<SnakeProps> = (props) => {
                         setBest((b) => { if (n > b) { localStorage.setItem('aditya-snake-best', String(n)); return n; } return b; });
                         return n;
                     });
-                    let f: P;
-                    do { f = [Math.floor(Math.random() * N), Math.floor(Math.random() * N)]; }
-                    while (s.some(([x, y]) => x === f[0] && y === f[1]));
-                    setFood(f);
+                    const free: P[] = [];
+                    for (let y = 0; y < N; y++)
+                        for (let x = 0; x < N; x++)
+                            if (!s.some((c) => c[0] === x && c[1] === y)) free.push([x, y]);
+                    if (free.length) setFood(free[Math.floor(Math.random() * free.length)]);
                 }
                 return [[hx, hy], ...body];
             });

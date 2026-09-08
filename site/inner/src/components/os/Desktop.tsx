@@ -25,7 +25,7 @@ import Credits from '../applications/Credits';
 import Digger from '../applications/Digger';
 import {
     ChromeApp, ClaudeApp, DeveloperApp, PortfolioApp,
-    SafariApp, SettingsApp, SpotifyApp, TerminalApp, TradingApp,
+    SettingsApp, SpotifyApp, TerminalApp, TradingApp,
 } from '../applications/StudioApps';
 
 export interface DesktopProps {}

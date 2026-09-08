@@ -17,9 +17,6 @@ const VAL: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
 
 const ChessGame: React.FC<ChessGameProps> = (props) => {
     const [game] = useState(() => new Chess());
-    const [fen, setFen] = useState(game.fen());
-    const [sel, setSel] = useState<string | null>(null);
-    const [moves, setMoves] = useState<string[]>([]);
     const [level, setLevel] = useState<'Easy' | 'Normal' | 'Hard'>('Normal');
     const [flip, setFlip] = useState(false);
     const [lastMove, setLastMove] = useState<[string, string] | null>(null);
@@ -35,11 +32,9 @@ const ChessGame: React.FC<ChessGameProps> = (props) => {
         return map;
     }, [game]) as any;
 
-    const sync = () => {
-        setFen(game.fen());
-        setSel(null);
-        setMoves([]);
-    };
+    // Chessground holds the board; this only nudges React to redraw the panels.
+    const [, redraw] = useState(0);
+    const sync = () => redraw((n) => n + 1);
 
     const paint = useCallback((lm: [string, string] | null) => {
         const api = cg.current;
@@ -110,8 +105,6 @@ const ChessGame: React.FC<ChessGameProps> = (props) => {
 
     useEffect(() => { cg.current?.set({ orientation: flip ? 'black' : 'white' }); }, [flip]);
 
-    const files = flip ? ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'] : ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-    const ranks = flip ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1];
     const history = game.history();
     const captured = { w: [] as string[], b: [] as string[] };
     const startCount: Record<string, number> = { p: 8, n: 2, b: 2, r: 2, q: 1 };
