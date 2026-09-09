@@ -50,4 +50,10 @@ export const Game2048App: React.FC<WindowAppProps> = (p) => (
     <VendorGame {...p} slug="2048" title="2048" credit="gabrielecirulli/2048 (MIT) — arrows or swipe" width={560} height={720} />
 );
 
+// WebGL inside the CRT's own WebGL scene, so it is opened deliberately rather
+// than pinned — see the note in its window bar.
+export const WebCraftApp: React.FC<WindowAppProps> = (p) => (
+    <VendorGame {...p} slug="webcraft" title="WebCraft" credit="Overv/WebCraft (Zlib) — click to lock the mouse · WASD + space · click to place, right-click to break" width={900} height={640} />
+);
+
 export default VendorGame;

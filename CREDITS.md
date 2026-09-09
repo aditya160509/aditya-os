@@ -40,3 +40,7 @@ The result is a personal adaptation rather than a claim of original authorship. 
 
 - Repository: [arnofrxdd/ide-portfolio](https://github.com/arnofrxdd/ide-portfolio)
 - Local license notice: `site/vscode/LICENSE`
+
+## Overv (WebCraft)
+
+The WebCraft app is [Overv/WebCraft](https://github.com/Overv/WebCraft) (Zlib), a Minecraft Classic clone in plain JavaScript and WebGL, vendored unmodified as its single-player build. Its optional Node multiplayer server is not included.

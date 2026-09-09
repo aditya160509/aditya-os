@@ -31,6 +31,7 @@ const Digger = lazyDefault(() => import('../applications/Digger'));
 const MinesweeperApp = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.MinesweeperApp })));
 const SolitaireApp = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.SolitaireApp })));
 const TetrisApp = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.TetrisApp })));
+const WebCraftApp = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.WebCraftApp })));
 const PongApp = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.PongApp })));
 const Game2048App = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.Game2048App })));
 const PortfolioApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.PortfolioApp })));
@@ -156,6 +157,7 @@ const APPLICATIONS: {
     snake: { key: 'snake', name: 'Snake', shortcutIcon: 'snake', component: Snake },
     game2048: { key: 'game2048', name: '2048', shortcutIcon: 'game2048', component: Game2048App },
     pong: { key: 'pong', name: 'Pong', shortcutIcon: 'pong', component: PongApp },
+    webcraft: { key: 'webcraft', name: 'WebCraft', shortcutIcon: 'windowGameIcon', component: WebCraftApp },
     tetris: { key: 'tetris', name: 'Tetris', shortcutIcon: 'tetris', component: TetrisApp },
     chess: { key: 'chess', name: 'Chess', shortcutIcon: 'chess', component: ChessGame },
     solitaire: { key: 'solitaire', name: 'Solitaire', shortcutIcon: 'solitaire', component: SolitaireApp },
