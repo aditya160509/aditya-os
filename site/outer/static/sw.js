@@ -6,21 +6,39 @@
  * touches, capped so the cache cannot grow without limit. Media (video, models,
  * textures) is deliberately never cached — it streams with range requests.
  */
-const SHELL = 'adityaos-shell-v1';
-const RUNTIME = 'adityaos-runtime-v1';
+const SHELL = 'adityaos-shell-v2';
+const RUNTIME = 'adityaos-runtime-v2';
 const RUNTIME_MAX = 60;
 
-const SHELL_URLS = ['/', '/desktop/index.html', '/manifest.webmanifest'];
+const SHELL_URLS = [
+    '/',
+    '/desktop/index.html',
+    '/portfolio/index.html',
+    '/manifest.webmanifest',
+    '/offline.html',
+    '/images/android-chrome-192x192.png',
+];
 
 self.addEventListener('install', (event) => {
-    event.waitUntil(caches.open(SHELL).then((c) => c.addAll(SHELL_URLS)).then(() => self.skipWaiting()));
+    // One missing URL would reject the whole addAll and leave the worker
+    // uninstalled, so each entry is cached independently.
+    event.waitUntil(
+        caches.open(SHELL)
+            .then((c) => Promise.all(SHELL_URLS.map((u) => c.add(u).catch(() => {}))))
+            .then(() => self.skipWaiting())
+    );
 });
 
 self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.keys()
-            .then((keys) => Promise.all(keys.filter((k) => k !== SHELL && k !== RUNTIME).map((k) => caches.delete(k))))
-            .then(() => self.clients.claim())
+        // Lets the browser start the network request in parallel with booting
+        // this worker, so a warm navigation is not held up by SW start-up.
+        (self.registration.navigationPreload
+            ? self.registration.navigationPreload.enable().catch(() => {})
+            : Promise.resolve())
+        .then(() => caches.keys())
+        .then((keys) => Promise.all(keys.filter((k) => k !== SHELL && k !== RUNTIME).map((k) => caches.delete(k))))
+        .then(() => self.clients.claim())
     );
 });
 
@@ -44,15 +62,20 @@ self.addEventListener('fetch', (event) => {
 
     // Navigations: network first, fall back to the cached shell when offline.
     if (request.mode === 'navigate') {
-        event.respondWith(
-            fetch(request)
-                .then((res) => {
-                    const copy = res.clone();
-                    caches.open(SHELL).then((c) => c.put(request, copy));
-                    return res;
-                })
-                .catch(() => caches.match(request).then((hit) => hit || caches.match('/')))
-        );
+        event.respondWith((async () => {
+            try {
+                const preloaded = await event.preloadResponse;
+                const res = preloaded || await fetch(request);
+                const copy = res.clone();
+                caches.open(SHELL).then((c) => c.put(request, copy));
+                return res;
+            } catch {
+                return (await caches.match(request))
+                    || (await caches.match('/'))
+                    || (await caches.match('/offline.html'))
+                    || Response.error();
+            }
+        })());
         return;
     }
 

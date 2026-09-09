@@ -794,8 +794,88 @@ const loadPrefs = (): Prefs => ({
     iconSize: Number(localStorage.getItem('iconSize') || '88'),
 });
 
+/**
+ * Settings — laid out the way a real system settings app is: a left rail of
+ * sections, a searchable index that jumps straight to a control, and grouped
+ * cards rather than a wall of rows. The chrome stays period-correct (raised
+ * bevels, system greys, no rounded corners) but the structure and the hit
+ * targets are modern.
+ */
+type Tab = 'Appearance' | 'Personalisation' | 'Desktop' | 'Sound' | 'System' | 'About';
+
+const TABS: { id: Tab; glyph: string; blurb: string }[] = [
+    { id: 'Appearance', glyph: '▤', blurb: 'Wallpaper, colours, motion' },
+    { id: 'Personalisation', glyph: '◧', blurb: 'Start-up, language, defaults' },
+    { id: 'Desktop', glyph: '▥', blurb: 'Icons, clock, shortcuts' },
+    { id: 'Sound', glyph: '◈', blurb: 'Output and volume' },
+    { id: 'System', glyph: '⌘', blurb: 'Shell, storage, performance' },
+    { id: 'About', glyph: '☗', blurb: 'Version and credits' },
+];
+
+/** Everything the search box can find, so a control is one query away. */
+const INDEX: { label: string; tab: Tab; keywords: string }[] = [
+    { label: 'Wallpaper', tab: 'Appearance', keywords: 'background picture video loop wallspace image' },
+    { label: 'Desktop shading', tab: 'Appearance', keywords: 'dim darken overlay contrast' },
+    { label: 'Playback speed', tab: 'Appearance', keywords: 'wallpaper video speed rate' },
+    { label: 'Reduce motion', tab: 'Appearance', keywords: 'animation accessibility still' },
+    { label: 'Auto-open Portfolio', tab: 'Personalisation', keywords: 'startup boot first window autostart' },
+    { label: 'Skip boot animation', tab: 'Personalisation', keywords: 'startup fast boot 3d' },
+    { label: 'Language', tab: 'Personalisation', keywords: 'locale region translation' },
+    { label: 'Icon size', tab: 'Desktop', keywords: 'shortcut large small scale' },
+    { label: '24-hour clock', tab: 'Desktop', keywords: 'time format taskbar toolbar' },
+    { label: 'Master sound', tab: 'Sound', keywords: 'audio mute ui clicks' },
+    { label: 'Volume', tab: 'Sound', keywords: 'audio loudness level' },
+    { label: 'Storage', tab: 'System', keywords: 'indexeddb wallpaper cache space clear' },
+    { label: 'Reset everything', tab: 'System', keywords: 'clear wipe defaults factory' },
+    { label: 'Version', tab: 'About', keywords: 'adityaos build credits github' },
+];
+
+/** Raised-bevel switch — the retro equivalent of a modern toggle. */
+const Switch = ({ on, onChange, label }: { on: boolean; onChange: () => void; label: string }) => (
+    <button
+        type="button"
+        role="switch"
+        aria-checked={on}
+        aria-label={label}
+        className={`w95-switch${on ? ' on' : ''}`}
+        onClick={onChange}
+    >
+        <span className="w95-switch-track"><span className="w95-switch-knob" /></span>
+        <span className="w95-switch-text">{on ? 'On' : 'Off'}</span>
+    </button>
+);
+
+const Row = ({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) => (
+    <div className="w95-row">
+        <div className="w95-row-label">
+            <span>{title}</span>
+            {hint && <small>{hint}</small>}
+        </div>
+        <div className="w95-row-control">{children}</div>
+    </div>
+);
+
+const Slider = ({ value, min, max, step, onChange, format }: {
+    value: number; min: number; max: number; step: number;
+    onChange: (n: number) => void; format: (n: number) => string;
+}) => (
+    <label className="w95-slider">
+        <input
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={value}
+            onChange={(e) => onChange(Number(e.target.value))}
+            style={{ ['--fill' as any]: `${((value - min) / (max - min)) * 100}%` }}
+        />
+        <b>{format(value)}</b>
+    </label>
+);
+
 export const SettingsApp: React.FC<Props> = (props) => {
-    const [tab, setTab] = useState<'General' | 'Appearance' | 'Desktop' | 'Sound' | 'System' | 'About'>('Appearance');
+    const [tab, setTab] = useState<Tab>('Appearance');
+    const [query, setQuery] = useState('');
     const [p, setP] = useState<Prefs>(loadPrefs);
     const save = (next: Prefs) => {
         setP(next);
@@ -811,6 +891,8 @@ export const SettingsApp: React.FC<Props> = (props) => {
         window.dispatchEvent(new CustomEvent('aditya-wallpaper', { detail: { speed: next.speed, dim: next.dim } }));
         window.dispatchEvent(new CustomEvent('aditya-prefs', { detail: next }));
     };
+    const set = <K extends keyof Prefs>(key: K, value: Prefs[K]) => save({ ...p, [key]: value });
+
     // Wallpaper chooser — the visitor's own image or video, downscaled on the
     // way in and stored in IndexedDB on their machine.
     const [wall, setWall] = useState<Wallpaper | null>(null);
@@ -855,49 +937,282 @@ export const SettingsApp: React.FC<Props> = (props) => {
         ['Sand', 'linear-gradient(160deg,#d9cbb3,#8d7f68)'],
     ];
 
-    const T = (key: keyof Prefs, label: string, hint: string) => (
-        <div className="setting-row"><span>{label}<small>{hint}</small></span><button className={(p[key] as boolean) ? 'toggle on' : 'toggle'} onClick={() => save({ ...p, [key]: !p[key] })}>{p[key] ? 'ON' : 'OFF'}</button></div>
-    );
-    return <ShellWindow {...props} title="AdityaOS Settings" icon="settings" className="settings-app full-settings w95-settings" status="Full preferences · saved in this browser" width={860} height={560} top={50} left={110}>
-        <aside><p className="section-label">PERSONAL</p>{(['General', 'Appearance', 'Desktop', 'Sound'] as const).map((t) => <button key={t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>▣ {t}</button>)}<p className="section-label">SYSTEM</p>{(['System', 'About'] as const).map((t) => <button key={t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>{t === 'System' ? '⌘ System' : '♙ About'}</button>)}<button onClick={() => { localStorage.clear(); save(loadPrefs()); }}>↺ Reset all</button></aside><main>
-        {tab === 'General' && <><h2>General</h2><section><h3>Permissions</h3>{T('autostart', 'Auto-open Portfolio', 'Open Aditya Portfolio on boot')}{T('skipBoot', 'Skip boot animation', 'Go straight to desktop')}</section><section><h3>General</h3><div className="setting-row"><span>Default file open destination<small>Where files open by default</small></span><b>VS Code ▾</b></div><div className="setting-row"><span>Language<small>App UI language</small></span><b>Auto detect ▾</b></div>{T('reduceMotion', 'Reduce motion', 'Disable ambient animation')}</section></>}
-        {tab === 'Appearance' && <><h2>Appearance</h2>
-        <section><h3>Background</h3>
-            <p>Use your own picture or clip — it is resized and kept on this device only.</p>
-            <div className="wall-actions">
-                <button className="wall-primary" disabled={busyWall} onClick={() => fileRef.current?.click()}>{busyWall ? 'Optimizing…' : '⬆ Choose image or video…'}</button>
-                <button onClick={resetWall} disabled={!wall}>↺ Default wallpaper</button>
-                <input ref={fileRef} type="file" accept="image/*,video/mp4,video/webm" style={{ display: 'none' }} onChange={(e) => applyFile(e.target.files?.[0])} />
-            </div>
-            <div className="wall-swatches">
-                {WALL_COLORS.map(([name, css]) => (
-                    <button key={name} title={name} style={{ background: css }} onClick={() => applyColor(css)} />
-                ))}
-            </div>
-            <p className="wall-label">Wallspace library · {BUILTIN_COUNT} loops <small>— click to apply, ⤓ to keep the file</small></p>
-            <div className="wall-grid">
-                {Array.from({ length: BUILTIN_COUNT }, (_, i) => builtinId(i + 1)).map((id) => (
-                    <div key={id} className={`wall-cell${wall?.src?.includes(id) ? ' on' : ''}`}>
-                        <button title={`Use ${id}`} onClick={() => pickBuiltin(id)}>
-                            <img src={builtinThumb(id)} alt="" loading="lazy" decoding="async" />
-                        </button>
-                        <a
-                            className="wall-get"
-                            href={builtinSrc(id)}
-                            download={`${id}.mp4`}
-                            title={`Download ${id}.mp4`}
-                            onClick={() => unlock('wallpaper-thief')}
-                        >⤓</a>
+    const hits = query.trim()
+        ? INDEX.filter((i) => `${i.label} ${i.keywords}`.toLowerCase().includes(query.trim().toLowerCase()))
+        : [];
+
+    const wallSummary = wallErr
+        ? wallErr
+        : wall
+            ? `Your ${wall.kind === 'color' ? 'colour' : wall.kind}${wall.blob ? ` · ${(wall.blob.size / 1024 / 1024).toFixed(1)} MB on this device` : ''}`
+            : 'Bundled One Piece loop';
+
+    return (
+        <ShellWindow
+            {...props}
+            title="Settings"
+            icon="settings"
+            className="settings-app w95-settings"
+            status="Saved in this browser · nothing leaves your device"
+            width={960}
+            height={640}
+            top={40}
+            left={90}
+        >
+            <aside>
+                <div className="w95-user">
+                    <span className="w95-avatar">A</span>
+                    <div>
+                        <b>Aditya Balaji</b>
+                        <small>Local account</small>
                     </div>
-                ))}
-            </div>
-            <p className="wall-state">{wallErr ? <em>{wallErr}</em> : wall ? `Using your ${wall.kind === 'color' ? 'colour' : wall.kind}${wall.blob ? ` · ${(wall.blob.size / 1024 / 1024).toFixed(1)} MB stored` : ''}` : 'Using the bundled One Piece loop.'}</p>
-        </section>
-        <section><h3>Live wallpaper</h3><p>Wallspace · One Piece workspace · 10s seamless loop · full video</p><label>Playback speed <b>{p.speed.toFixed(2)}×</b><input type="range" min="0.5" max="2.5" step="0.05" value={p.speed} onChange={(e) => save({ ...p, speed: Number(e.target.value) })} /></label><label>Desktop shading <b>{Math.round(p.dim * 100)}%</b><input type="range" min="0" max="0.6" step="0.01" value={p.dim} onChange={(e) => save({ ...p, dim: Number(e.target.value) })} /></label><label>Icon size <b>{p.iconSize}px</b><input type="range" min="64" max="112" step="2" value={p.iconSize} onChange={(e) => save({ ...p, iconSize: Number(e.target.value) })} /></label></section></>}
-        {tab === 'Desktop' && <><h2>Desktop</h2><section><h3>Clock & layout</h3>{T('clock24', '24-hour clock', 'Toolbar time format')}{T('autostart', 'Auto-open Portfolio', 'First window on boot')}</section><section><h3>Shortcuts</h3><p>Games (Doom · Oregon Trail · Scrabble · Digger · Wordle), dev apps (Terminal · Python+Node · Chrome · Safari), and portfolio shortcuts stay pinned.</p></section></>}
-        {tab === 'Sound' && <><h2>Sound</h2><section><h3>Audio</h3>{T('sound', 'Master sound', 'UI clicks + ambience')}<label>Volume <b>{Math.round(p.volume * 100)}%</b><input type="range" min="0" max="1" step="0.05" value={p.volume} onChange={(e) => save({ ...p, volume: Number(e.target.value) })} /></label></section></>}
-        {tab === 'System' && <><h2>System</h2><section><h3>Shell</h3><div className="setting-row"><span>Original desk camera and audio</span><b>ON</b></div><div className="setting-row"><span>Motion optimized MP4</span><b>ON</b></div><div className="setting-row"><span>AdityaOS desktop</span><b>1.0</b></div>{T('skipBoot', 'Skip 3D boot', 'Faster entry on slow devices')}</section></>}
-        {tab === 'About' && <><h2>About</h2><section><h3>AdityaOS 1.0</h3><p>Builder · researcher · student · Mumbai, India. A 3D desk shell reskinned from an open reference scene, running a desktop of working applications — markets, editor, browser, file system and games.</p><div className="setting-row"><span>GitHub</span><button onClick={() => open(links.github)}>Open ↗</button></div><div className="setting-row"><span>LinkedIn</span><button onClick={() => open(links.linkedin)}>Open ↗</button></div></section></>}
-        </main>
-    </ShellWindow>;
+                </div>
+
+                <div className="w95-search">
+                    <span aria-hidden>⌕</span>
+                    <input
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Find a setting"
+                        aria-label="Find a setting"
+                    />
+                    {query && <button className="w95-clear" onClick={() => setQuery('')} aria-label="Clear search">×</button>}
+                </div>
+
+                {query ? (
+                    <div className="w95-hits">
+                        {hits.length === 0 && <p className="w95-nohits">No matches.</p>}
+                        {hits.map((h) => (
+                            <button key={h.label} onClick={() => { setTab(h.tab); setQuery(''); }}>
+                                <b>{h.label}</b>
+                                <small>{h.tab}</small>
+                            </button>
+                        ))}
+                    </div>
+                ) : (
+                    <nav>
+                        {TABS.map((t) => (
+                            <button
+                                key={t.id}
+                                className={tab === t.id ? 'active' : ''}
+                                onClick={() => setTab(t.id)}
+                                aria-current={tab === t.id ? 'page' : undefined}
+                            >
+                                <span className="w95-glyph" aria-hidden>{t.glyph}</span>
+                                <span className="w95-navtext">
+                                    <b>{t.id}</b>
+                                    <small>{t.blurb}</small>
+                                </span>
+                            </button>
+                        ))}
+                    </nav>
+                )}
+            </aside>
+
+            <main>
+                <header className="w95-head">
+                    <h2>{tab}</h2>
+                    <p>{TABS.find((t) => t.id === tab)?.blurb}</p>
+                </header>
+
+                <div className="w95-scroll">
+                    {tab === 'Appearance' && (
+                        <>
+                            <section>
+                                <h3>Your own background</h3>
+                                <p className="w95-note">
+                                    Pick a picture or a clip. It is resized in the browser and stored on
+                                    this device only — nothing is uploaded.
+                                </p>
+                                <div className="wall-actions">
+                                    <button className="wall-primary" disabled={busyWall} onClick={() => fileRef.current?.click()}>
+                                        {busyWall ? 'Optimizing…' : '⬆ Choose image or video…'}
+                                    </button>
+                                    <button onClick={resetWall} disabled={!wall}>↺ Default</button>
+                                    <input
+                                        ref={fileRef}
+                                        type="file"
+                                        accept="image/*,video/mp4,video/webm"
+                                        style={{ display: 'none' }}
+                                        onChange={(e) => applyFile(e.target.files?.[0])}
+                                    />
+                                </div>
+                                <div className="wall-swatches">
+                                    {WALL_COLORS.map(([name, css]) => (
+                                        <button key={name} title={name} style={{ background: css }} onClick={() => applyColor(css)} />
+                                    ))}
+                                </div>
+                                <p className={`wall-state${wallErr ? ' is-error' : ''}`}>{wallSummary}</p>
+                            </section>
+
+                            <section>
+                                <h3>Wallspace library</h3>
+                                <p className="w95-note">
+                                    {BUILTIN_COUNT} loops. Click to apply, ⤓ to keep the file.
+                                </p>
+                                <div className="wall-grid">
+                                    {Array.from({ length: BUILTIN_COUNT }, (_, i) => builtinId(i + 1)).map((id) => (
+                                        <div key={id} className={`wall-cell${wall?.src?.includes(id) ? ' on' : ''}`}>
+                                            <button title={`Use ${id}`} onClick={() => pickBuiltin(id)}>
+                                                <img src={builtinThumb(id)} alt="" loading="lazy" decoding="async" />
+                                            </button>
+                                            <a
+                                                className="wall-get"
+                                                href={builtinSrc(id)}
+                                                download={`${id}.mp4`}
+                                                title={`Download ${id}.mp4`}
+                                                onClick={() => unlock('wallpaper-thief')}
+                                            >⤓</a>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+
+                            <section>
+                                <h3>Rendering</h3>
+                                <Row title="Playback speed" hint="How fast a video wallpaper loops">
+                                    <Slider value={p.speed} min={0.5} max={2.5} step={0.05}
+                                        onChange={(n) => set('speed', n)} format={(n) => `${n.toFixed(2)}×`} />
+                                </Row>
+                                <Row title="Desktop shading" hint="Darkens the wallpaper so icons stay legible">
+                                    <Slider value={p.dim} min={0} max={0.6} step={0.01}
+                                        onChange={(n) => set('dim', n)} format={(n) => `${Math.round(n * 100)}%`} />
+                                </Row>
+                                <Row title="Reduce motion" hint="Pauses ambient animation across the desktop">
+                                    <Switch on={p.reduceMotion} label="Reduce motion" onChange={() => set('reduceMotion', !p.reduceMotion)} />
+                                </Row>
+                            </section>
+                        </>
+                    )}
+
+                    {tab === 'Personalisation' && (
+                        <>
+                            <section>
+                                <h3>Start-up</h3>
+                                <Row title="Auto-open Portfolio" hint="Opens the portfolio window on boot">
+                                    <Switch on={p.autostart} label="Auto-open Portfolio" onChange={() => set('autostart', !p.autostart)} />
+                                </Row>
+                                <Row title="Skip boot animation" hint="Go straight to the desktop on slower machines">
+                                    <Switch on={p.skipBoot} label="Skip boot animation" onChange={() => set('skipBoot', !p.skipBoot)} />
+                                </Row>
+                            </section>
+                            <section>
+                                <h3>Defaults</h3>
+                                <Row title="Open files with" hint="Where a double-clicked file lands">
+                                    <span className="w95-static">VS Code</span>
+                                </Row>
+                                <Row title="Language" hint="Follows your browser">
+                                    <span className="w95-static">Auto-detect</span>
+                                </Row>
+                            </section>
+                        </>
+                    )}
+
+                    {tab === 'Desktop' && (
+                        <>
+                            <section>
+                                <h3>Icons</h3>
+                                <Row title="Icon size" hint="Applies to every desktop shortcut">
+                                    <Slider value={p.iconSize} min={64} max={112} step={2}
+                                        onChange={(n) => set('iconSize', n)} format={(n) => `${n}px`} />
+                                </Row>
+                            </section>
+                            <section>
+                                <h3>Taskbar</h3>
+                                <Row title="24-hour clock" hint="Time format in the toolbar">
+                                    <Switch on={p.clock24} label="24-hour clock" onChange={() => set('clock24', !p.clock24)} />
+                                </Row>
+                            </section>
+                            <section>
+                                <h3>Pinned</h3>
+                                <p className="w95-note">
+                                    Games (Doom · Oregon Trail · Scrabble · Digger · Wordle · Minesweeper ·
+                                    Solitaire · Chess · Tetris · Pong), developer apps (Terminal · Editor ·
+                                    Browser) and the portfolio shortcuts stay pinned.
+                                </p>
+                            </section>
+                        </>
+                    )}
+
+                    {tab === 'Sound' && (
+                        <section>
+                            <h3>Audio</h3>
+                            <Row title="Master sound" hint="Interface clicks and ambience">
+                                <Switch on={p.sound} label="Master sound" onChange={() => set('sound', !p.sound)} />
+                            </Row>
+                            <Row title="Volume" hint="Applies to every app in the desktop">
+                                <Slider value={p.volume} min={0} max={1} step={0.05}
+                                    onChange={(n) => set('volume', n)} format={(n) => `${Math.round(n * 100)}%`} />
+                            </Row>
+                        </section>
+                    )}
+
+                    {tab === 'System' && (
+                        <>
+                            <section>
+                                <h3>Shell</h3>
+                                <Row title="3D workstation"><span className="w95-static">Enabled</span></Row>
+                                <Row title="Motion-optimised MP4"><span className="w95-static">Enabled</span></Row>
+                                <Row title="Service worker" hint="Caches the shell for offline use">
+                                    <span className="w95-static">
+                                        {typeof navigator !== 'undefined' && 'serviceWorker' in navigator ? 'Registered' : 'Unsupported'}
+                                    </span>
+                                </Row>
+                            </section>
+                            <section>
+                                <h3>Storage</h3>
+                                <p className="w95-note">
+                                    Your wallpaper, achievements and app state live in this browser. Video
+                                    wallpapers and 3D models are streamed, never cached.
+                                </p>
+                                <Row title="Wallpaper store">
+                                    <span className="w95-static">
+                                        {wall?.blob ? `${(wall.blob.size / 1024 / 1024).toFixed(1)} MB` : 'Empty'}
+                                    </span>
+                                </Row>
+                            </section>
+                            <section className="w95-danger">
+                                <h3>Reset</h3>
+                                <Row title="Reset everything" hint="Clears preferences, wallpaper and achievements">
+                                    <button
+                                        className="w95-danger-btn"
+                                        onClick={() => { localStorage.clear(); clearWallpaper(); save(loadPrefs()); announceWallpaper(); }}
+                                    >↺ Reset</button>
+                                </Row>
+                            </section>
+                        </>
+                    )}
+
+                    {tab === 'About' && (
+                        <>
+                            <section className="w95-about">
+                                <div className="w95-badge">A</div>
+                                <div>
+                                    <h3>AdityaOS 1.0</h3>
+                                    <p className="w95-note">
+                                        A 3D desk shell running a desktop of working applications — markets,
+                                        editor, browser, file system, research and games. Built by Aditya
+                                        Balaji: quantitative researcher and engineer, Mumbai.
+                                    </p>
+                                </div>
+                            </section>
+                            <section>
+                                <h3>Links</h3>
+                                <Row title="Portfolio"><button onClick={() => open(`${window.location.origin}/portfolio/`)}>Open ↗</button></Row>
+                                <Row title="GitHub"><button onClick={() => open(links.github)}>Open ↗</button></Row>
+                                <Row title="LinkedIn"><button onClick={() => open(links.linkedin)}>Open ↗</button></Row>
+                            </section>
+                            <section>
+                                <h3>Built on</h3>
+                                <p className="w95-note">
+                                    Three.js · React · Monaco · lichess chessground · js-dos · OpenCharts ·
+                                    socket.io. Full credits in CREDITS.md.
+                                </p>
+                            </section>
+                        </>
+                    )}
+                </div>
+            </main>
+        </ShellWindow>
+    );
 };

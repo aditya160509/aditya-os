@@ -146,8 +146,11 @@ const SocketContextProvider = ({ children }: { children: ReactNode }) => {
 
   // SETUP SOCKET.IO
   useEffect(() => {
-    if (!process.env.NEXT_PUBLIC_WS_URL) return;
-    const newSocket = io(process.env.NEXT_PUBLIC_WS_URL!, {
+    // The deployed relay (presence/, see render.yaml). Set NEXT_PUBLIC_WS_URL
+    // to point a build somewhere else, or to "off" to disable presence.
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL ?? "https://aditya-presence.onrender.com";
+    if (!wsUrl || wsUrl === "off") return;
+    const newSocket = io(wsUrl, {
       auth: {
         sessionId: localStorage.getItem(SESSION_ID_KEY),
       },
