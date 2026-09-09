@@ -70,7 +70,6 @@ export const PortfolioApp: React.FC<Props> = (props) => (
             className="site-frame"
             title="Aditya Balaji — Portfolio"
             src="/portfolio/"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
         />
     </ShellWindow>
 );
@@ -618,7 +617,6 @@ export const TradingApp: React.FC<Props> = (props) => (
             className="markets-frame"
             title="OpenCharts"
             src="opencharts/index.html"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals"
         />
     </ShellWindow>
 );
@@ -1003,7 +1001,6 @@ export const DeveloperApp: React.FC<Props> = (props) => (
             className="vscode-frame"
             title="Aditya Balaji Code Studio"
             src="/vscode/"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
         />
     </ShellWindow>
 );
