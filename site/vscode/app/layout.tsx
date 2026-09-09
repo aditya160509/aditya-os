@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     title: "Aditya Balaji's Code Studio",
     description:
       'A VS Code workspace for Aditya Balaji\'s research, engineering, and selected projects.',
-    url: 'https://adityabalaji.vercel.app/vscode/',
+    url: '/vscode/',
   },
   twitter: {
     card: 'summary_large_image',

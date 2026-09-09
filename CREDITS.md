@@ -29,7 +29,7 @@ The animated desktop companion follows the open Hermes Agent / Petdex sprite for
 - Source artwork: [`apps/desktop/public/hermes-sprite.png`](https://github.com/nousresearch/hermes-agent/blob/main/apps/desktop/public/hermes-sprite.png)
 - Pet documentation: [Hermes pets / Petdex Mascots](https://github.com/nousresearch/hermes-agent/blob/main/website/docs/user-guide/features/pets.md)
 
-The Assistant app also takes its palette and chat layout from Hermes' own web client (`web/src`, MIT) — the deep teal ground, warm cream foreground and mint accent, and the sidebar-plus-transcript shape. No Hermes code runs here: there is no model behind the app and nothing typed into it leaves the browser.
+The Assistant app is built on [nesquena/hermes-webui](https://github.com/nesquena/hermes-webui) (MIT): its CSS token system and values, its `msg-row` / `msg-role` / `msg-body` / `msg-actions` message structure, the row-hover reveal on message actions, and the composer with its gradient fade. Earlier passes also drew on Hermes' own web client (`web/src`, MIT) — the deep teal ground, warm cream foreground and mint accent, and the sidebar-plus-transcript shape. No Hermes code runs here: there is no model behind the app and nothing typed into it leaves the browser.
 - Local license notice: `site/inner/public/assets/pet/LICENSE-hermes.txt`
 
 ## VS Code Portfolio — Nitin Ranganath

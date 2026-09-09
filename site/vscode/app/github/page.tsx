@@ -20,7 +20,7 @@ const user: User = {
   followers: 0,
 };
 const repos: Repo[] = [
-  { id: 1, name: 'aditya-os', description: 'Interactive 3D workstation portfolio and playable personal site.', language: 'TypeScript', watchers: 0, forks: 0, stargazers_count: 0, html_url: 'https://github.com/aditya160509/aditya-os', homepage: 'https://adityabalaji.vercel.app/' },
+  { id: 1, name: 'aditya-os', description: 'Interactive 3D workstation portfolio and playable personal site.', language: 'TypeScript', watchers: 0, forks: 0, stargazers_count: 0, html_url: 'https://github.com/aditya160509/aditya-os', homepage: '/' },
   { id: 2, name: 'phenosync', description: 'Climate-driven phenological mismatch research pipeline.', language: 'Python', watchers: 0, forks: 0, stargazers_count: 0, html_url: 'https://github.com/aditya160509/phenosync', homepage: '' },
   { id: 3, name: 'study-notes', description: 'Working notes, experiments, and technical reference material.', language: 'Markdown', watchers: 0, forks: 0, stargazers_count: 0, html_url: 'https://github.com/aditya160509/study-notes', homepage: '' },
 ];

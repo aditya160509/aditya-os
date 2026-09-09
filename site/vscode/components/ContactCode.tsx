@@ -3,8 +3,8 @@ import styles from '@/styles/ContactCode.module.css';
 const contactItems = [
   {
     social: 'website',
-    link: 'adityabalaji.vercel.app',
-    href: 'https://adityabalaji.vercel.app',
+    link: 'aditya-os-eight.vercel.app',
+    href: 'https://aditya-os-eight.vercel.app',
   },
   {
     social: 'email',

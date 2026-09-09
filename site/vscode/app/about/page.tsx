@@ -55,7 +55,7 @@ const AboutPage = () => {
             <div className={styles.sectionBody}>
               <p className={styles.paragraph}>The main portfolio has the long-form research notes, project details, resume, and live demos. This window is the compact code-facing view.</p>
               <div className={styles.writingLinks}>
-                <a href="https://adityabalaji.vercel.app/portfolio/" target="_blank" rel="noopener noreferrer" className={styles.writingLink}><span>Open the personal site</span><VscLinkExternal size={14} /></a>
+                <a href="/portfolio/" target="_blank" rel="noopener noreferrer" className={styles.writingLink}><span>Open the personal site</span><VscLinkExternal size={14} /></a>
                 <a href="https://github.com/aditya160509" target="_blank" rel="noopener noreferrer" className={styles.writingLink}><span>Browse the code archive</span><VscLinkExternal size={14} /></a>
               </div>
             </div>

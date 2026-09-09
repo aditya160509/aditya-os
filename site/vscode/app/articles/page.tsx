@@ -17,7 +17,7 @@ const articles: Article[] = [
     title: 'Silence Before the Break',
     description: 'A threshold model for shared narratives and coordination stress across equity markets.',
     cover_image: '/vscode/logos/vscode_icon.svg',
-    url: 'https://adityabalaji.vercel.app/portfolio/research/',
+    url: '/portfolio/research/',
     page_views_count: 0,
     public_reactions_count: 0,
     comments_count: 0,
@@ -27,7 +27,7 @@ const articles: Article[] = [
     title: 'When Realized Outcomes Outweigh Predictive Signals',
     description: 'What 100,801 Fantasy Premier League player-gameweeks reveal about crowds and information.',
     cover_image: '/vscode/logos/react_icon.svg',
-    url: 'https://adityabalaji.vercel.app/portfolio/research/',
+    url: '/portfolio/research/',
     page_views_count: 0,
     public_reactions_count: 0,
     comments_count: 0,
@@ -37,7 +37,7 @@ const articles: Article[] = [
     title: 'Asymmetric phenological advance',
     description: 'An open-data workflow for estimating when climate change pushes species out of sync.',
     cover_image: '/vscode/logos/markdown_icon.svg',
-    url: 'https://adityabalaji.vercel.app/portfolio/research/',
+    url: '/portfolio/research/',
     page_views_count: 0,
     public_reactions_count: 0,
     comments_count: 0,
@@ -78,7 +78,7 @@ export default function ArticlesPage() {
           </div>
 
           <a
-            href="https://adityabalaji.vercel.app/portfolio/research/"
+            href="/portfolio/research/"
             target="_blank"
             rel="noopener noreferrer"
             className={styles.profileLink}
