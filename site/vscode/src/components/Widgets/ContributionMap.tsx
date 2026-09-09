@@ -247,7 +247,7 @@ export const CanvasContributionMap = ({ theme }: { theme: string }) => {
         <div className="mb-12 border border-[var(--border)] rounded-md bg-[var(--bg-activity)] p-5 max-w-full inline-block transition-colors duration-300">
             <div className="flex justify-between items-end mb-4 w-full">
                 <h2 className="text-sm md:text-base text-[var(--text-primary)] font-sans font-medium">
-                    {contributionCount} contributions in the last year
+                    Contribution grid <span className="opacity-50 font-normal">— decorative, not live data</span>
                 </h2>
             </div>
 
@@ -257,7 +257,7 @@ export const CanvasContributionMap = ({ theme }: { theme: string }) => {
 
             <div className="flex justify-between items-center mt-4 text-[10px] md:text-xs text-[var(--text-secondary)] font-sans w-full">
                 <div className="hidden sm:block opacity-50">
-                    Learn how we calculate contributions.
+                    Generated pattern, not a GitHub history.
                 </div>
                 <div className="flex items-center gap-1.5 ml-auto">
                     <span className="mr-1">Less</span>

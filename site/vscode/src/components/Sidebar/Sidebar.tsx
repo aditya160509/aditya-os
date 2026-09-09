@@ -124,7 +124,7 @@ export const Sidebar = ({
 }: SidebarProps) => {
 
     const { theme, setTheme, homepageLayout, setHomepageLayout, installedThemes, uninstallTheme, easyMode } = useContext(ThemeContext);
-    const [activeView, setActiveView] = useState<'explorer' | 'search' | 'deployments' | 'certifications' | 'marketplace' | 'account' | 'settings'>('explorer');
+    const [activeView, setActiveView] = useState<'explorer' | 'search' | 'deployments' | 'marketplace' | 'account' | 'settings'>('explorer');
 
 
     const [settingsSearch, setSettingsSearch] = useState('');
@@ -205,56 +205,9 @@ export const Sidebar = ({
 
 
 
-    const certifications = [
-        {
-            name: "AWS Solutions Architect",
-            issuer: "Amazon Web Services",
-            id: "aws-sa",
-            description: "Validation of expertise in designing distributed systems on AWS.",
-            status: "Certified",
-            icon: Cloud
-        },
-        {
-            name: "Meta Front-End Designer",
-            issuer: "Meta / Coursera",
-            id: "meta-fed",
-            description: "Advanced proficiency in React, JS, and responsive UI/UX systems.",
-            status: "Verified",
-            icon: LayoutGrid
-        },
-        {
-            name: "Google Cloud Engineer",
-            issuer: "Google Cloud",
-            id: "google-ace",
-            description: "Associate level certification for cloud infrastructure management.",
-            status: "Certified",
-            icon: Globe
-        },
-        {
-            name: "System Architect Award",
-            issuer: "Tech Expo 2024",
-            id: "award-24",
-            description: "1st Place Winner for innovative distributed terminal architecture.",
-            status: "Awarded",
-            icon: Trophy
-        }
-    ];
-
-    const [certSearch, setCertSearch] = useState('');
-    const filteredCerts = certifications.filter(c =>
-        c.name.toLowerCase().includes(certSearch.toLowerCase()) ||
-        c.issuer.toLowerCase().includes(certSearch.toLowerCase())
-    );
-
-    const handleVerifyCert = (name: string) => {
-        onToast(`Opening verification portal for ${name}...`, 'info');
-        setTimeout(() => {
-            onToast(`Verification Success: ${name} is valid.`, 'success');
-        }, 1500);
-    };
 
 
-    const handleActivityClick = (view: 'explorer' | 'search' | 'deployments' | 'certifications' | 'marketplace' | 'account' | 'settings') => {
+    const handleActivityClick = (view: 'explorer' | 'search' | 'deployments' | 'marketplace' | 'account' | 'settings') => {
         if (activeView === view) {
             setIsPanelVisible(!isPanelVisible);
         } else {
@@ -384,14 +337,6 @@ export const Sidebar = ({
                 >
                     {activeView === 'deployments' && isPanelVisible && <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-[var(--accent)]" />}
                     <Globe size={24} strokeWidth={1.5} />
-                </div>
-                <div
-                    className={`w-full h-12 flex items-center justify-center cursor-pointer transition-all relative ${activeView === 'certifications' && isPanelVisible ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-                    onClick={() => handleActivityClick('certifications')}
-                    title="Certifications"
-                >
-                    {activeView === 'certifications' && isPanelVisible && <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-[var(--accent)]" />}
-                    <Trophy size={24} strokeWidth={1.5} />
                 </div>
                 <div
                     className={`w-full h-12 flex items-center justify-center cursor-pointer transition-all relative ${activeView === 'marketplace' && isPanelVisible ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
@@ -1101,234 +1046,6 @@ export const Sidebar = ({
                                 </div>
                             )}
 
-                        </div>
-                    </div>
-                )}
-
-                {/* CERTIFICATIONS VIEW */}
-                {activeView === 'certifications' && (
-                    <div className="flex-1 flex flex-col min-h-0 min-w-0">
-                        <div className="h-9 px-4 flex items-center justify-between text-[11px] font-bold text-[var(--text-secondary)] tracking-wider uppercase">
-                            <span>Certifications</span>
-                            <div className="flex gap-2">
-                                <RefreshCw size={14} className="hover:text-[var(--text-primary)] cursor-pointer" />
-                                <Filter size={14} className="hover:text-[var(--text-primary)] cursor-pointer" />
-                            </div>
-                        </div>
-
-                        {/* Search Certs */}
-                        <div className="px-4 mb-4">
-                            <div className="flex items-center gap-2 px-2 py-1 bg-[var(--bg-activity)] border border-[var(--border)] rounded-sm focus-within:border-[var(--accent)] transition-colors">
-                                <Search size={12} className="text-[var(--text-secondary)]" />
-                                <input
-                                    type="text"
-                                    placeholder="Search Marketplace"
-                                    value={certSearch}
-                                    onChange={(e) => setCertSearch(e.target.value)}
-                                    className="bg-transparent border-none outline-none text-[11px] text-[var(--text-primary)] w-full font-sans"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto custom-scrollbar">
-                            {/* SECTION: INSTALLED (CERTIFIED) */}
-                            <div className="h-[22px] flex items-center px-1 bg-[var(--bg-activity)]/30 cursor-pointer border-t border-white/5">
-                                <ChevronDown size={14} className="text-[var(--text-secondary)]" />
-                                <span className="text-[11px] font-bold text-[var(--text-secondary)] ml-1 tracking-tight uppercase">Verified Credentials</span>
-                            </div>
-
-                            <div className="py-2 space-y-1">
-                                {filteredCerts.map((cert) => (
-                                    <div key={cert.id} className="group relative flex gap-3 px-4 py-2 hover:bg-[var(--bg-activity)] cursor-pointer transition-colors border-l-2 border-transparent hover:border-[var(--accent)]">
-                                        <div className="w-10 h-10 bg-[var(--bg-activity)] flex items-center justify-center rounded-sm shrink-0 border border-[var(--border)] shadow-sm">
-                                            <cert.icon size={20} className="text-[var(--accent)] opacity-80" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-start">
-                                                <div className="text-[13px] font-bold text-[var(--text-primary)] truncate">{cert.name}</div>
-                                                <ShieldCheck size={12} className="text-blue-400 mt-0.5 shrink-0" />
-                                            </div>
-                                            <div className="text-[11px] text-[var(--text-secondary)] truncate">{cert.issuer}</div>
-                                            <div className="text-[10px] text-[var(--text-secondary)] line-clamp-1 opacity-60 leading-tight mt-0.5">{cert.description}</div>
-
-                                            <div className="flex items-center gap-3 mt-2">
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleVerifyCert(cert.name); }}
-                                                    className="px-2 py-0.5 bg-[var(--accent)] hover:bg-[var(--accent)]/80 text-[var(--accent-fg)] text-[10px] rounded-[2px] font-medium transition-colors"
-                                                >
-                                                    Verify
-                                                </button>
-                                                <div className="flex items-center gap-1 text-[10px] text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] opacity-60">
-                                                    <Award size={10} />
-                                                    <span>{cert.status}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                                {filteredCerts.length === 0 && (
-                                    <div className="px-8 py-10 flex flex-col items-center justify-center text-center opacity-40">
-                                        <Trophy size={48} className="mb-4" />
-                                        <div className="text-xs">No certifications found.</div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-
-                {/* SETTINGS VIEW */}
-                {activeView === 'settings' && (
-                    <div className="flex-1 flex flex-col min-h-0 min-w-0">
-                        <div className="px-4 py-2 text-xs font-bold text-[var(--text-secondary)] tracking-wider uppercase">Settings</div>
-
-                        {/* Search Input */}
-                        <div className="px-4 mb-4">
-                            <div className="flex items-center gap-2 px-2 py-1 bg-[var(--bg-activity)] border border-[var(--border)] rounded-sm focus-within:border-[var(--accent)] transition-colors">
-                                <Search size={12} className="text-[var(--text-secondary)]" />
-                                <input
-                                    type="text"
-                                    placeholder="Search settings"
-                                    value={settingsSearch}
-                                    onChange={(e) => setSettingsSearch(e.target.value)}
-                                    className="bg-transparent border-none outline-none text-[11px] text-[var(--text-primary)] w-full font-sans"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto custom-scrollbar px-4 pb-6 space-y-6">
-                            {/* EDITOR CATEGORY */}
-                            {("text editor".includes(settingsSearch.toLowerCase()) || "word wrap".includes(settingsSearch.toLowerCase()) || "minimap".includes(settingsSearch.toLowerCase())) && (
-                                <div>
-                                    <h3 className="text-[10px] font-bold text-[var(--accent)] uppercase mb-3 tracking-tighter">Text Editor</h3>
-                                    <div className="space-y-4">
-                                        {("word wrap".includes(settingsSearch.toLowerCase())) && (
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div className="min-w-0">
-                                                    <div className="text-xs text-[var(--text-primary)] font-medium">Word Wrap</div>
-                                                    <div className="text-[10px] text-[var(--text-secondary)] mt-0.5 leading-tight opacity-70">Controls how lines should wrap.</div>
-                                                </div>
-                                                <button onClick={() => toggleSetting("Word Wrap")} className="shrink-0">
-                                                    {editorSettings.wordWrap
-                                                        ? <ToggleRight size={22} className="text-[var(--accent)]" />
-                                                        : <ToggleLeft size={22} className="text-[var(--text-secondary)] opacity-50" />}
-                                                </button>
-                                            </div>
-                                        )}
-
-                                        {("minimap".includes(settingsSearch.toLowerCase())) && (
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div className="min-w-0">
-                                                    <div className="text-xs text-[var(--text-primary)] font-medium">Minimap</div>
-                                                    <div className="text-[10px] text-[var(--text-secondary)] mt-0.5 leading-tight opacity-70">Shows a high-level overview of the code.</div>
-                                                </div>
-                                                <button onClick={() => toggleSetting("Minimap")} className="shrink-0">
-                                                    {editorSettings.minimap
-                                                        ? <ToggleRight size={22} className="text-[var(--accent)]" />
-                                                        : <ToggleLeft size={22} className="text-[var(--text-secondary)] opacity-50" />}
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* WORKBENCH CATEGORY */}
-                            {(
-                                "workbench".includes(settingsSearch.toLowerCase()) ||
-                                "color theme".includes(settingsSearch.toLowerCase()) ||
-                                Object.values(THEMES).some(t => t.name.toLowerCase().includes(settingsSearch.toLowerCase()))
-                            ) && (
-                                    <div>
-                                        <h3 className="text-[10px] font-bold text-[var(--accent)] uppercase mb-3 tracking-tighter">Workbench</h3>
-                                        <div className="space-y-4">
-                                            <div className="text-xs text-[var(--text-primary)] font-medium mb-1">Color Theme</div>
-
-                                            <div className="space-y-1">
-                                                {Object.entries(THEME_CATEGORIES).map(([catTitle, themeKeys]) => {
-                                                    const installedInCategory = themeKeys.filter(k => installedThemes.includes(k));
-                                                    if (installedInCategory.length === 0) return null;
-
-                                                    return (
-                                                        <ThemeCollapsibleGroup
-                                                            key={catTitle}
-                                                            title={catTitle}
-                                                            themes={Object.entries(THEMES).filter(([k]) => installedInCategory.includes(k))}
-                                                            activeTheme={theme}
-                                                            setTheme={setTheme}
-                                                            uninstallTheme={uninstallTheme}
-                                                            search={settingsSearch}
-                                                        />
-                                                    );
-                                                })}
-
-                                                {/* AUTHENTIC LINK TO MARKETPLACE */}
-                                                {(settingsSearch === '' || "install additional color themes".includes(settingsSearch.toLowerCase())) && (
-                                                    <button
-                                                        onClick={() => setActiveView('marketplace')}
-                                                        className="w-full mt-2 flex items-center gap-2 px-2 py-1.5 text-[11px] text-[var(--accent)] hover:bg-[var(--bg-activity)] transition-all text-left font-medium"
-                                                    >
-                                                        <span>Install Additional Color Themes...</span>
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                            {/* PORTFOLIO CATEGORY */}
-                            {("portfolio".includes(settingsSearch.toLowerCase()) || "authentic vscode".includes(settingsSearch.toLowerCase()) || "stylish layout".includes(settingsSearch.toLowerCase())) && (
-                                <div>
-                                    <h3 className="text-[10px] font-bold text-[var(--accent)] uppercase mb-3 tracking-tighter">Portfolio</h3>
-                                    <div className="space-y-4">
-                                        <div className={`flex items-start justify-between gap-4 ${easyMode ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}>
-                                            <div className="min-w-0">
-                                                <div className="text-xs text-[var(--text-primary)] font-medium">Authentic VS Code Layout</div>
-                                                <div className="text-[10px] text-[var(--text-secondary)] mt-0.5 leading-tight opacity-70">Toggle between high-fidelity VS Code and Stylish home layouts.</div>
-                                            </div>
-                                            <button
-                                                onClick={() => !easyMode && setHomepageLayout(homepageLayout === 'modern' ? 'vscode' : 'modern')}
-                                                className="shrink-0"
-                                                disabled={easyMode}
-                                            >
-                                                {homepageLayout === 'vscode'
-                                                    ? <ToggleRight size={22} className="text-[var(--accent)]" />
-                                                    : <ToggleLeft size={22} className="text-[var(--text-secondary)] opacity-50" />}
-                                            </button>
-                                        </div>
-
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="min-w-0">
-                                                <div className="text-xs text-[var(--text-primary)] font-medium">Easy Mode</div>
-                                                <div className="text-[10px] text-[var(--text-secondary)] mt-0.5 leading-tight opacity-70">Simplifies the UI for non-developers by removing complex VS Code elements.</div>
-                                            </div>
-                                            <button onClick={() => window.dispatchEvent(new CustomEvent('toggle-easy-mode'))} className="shrink-0">
-                                                {easyMode
-                                                    ? <ToggleRight size={22} className="text-[var(--accent)]" />
-                                                    : <ToggleLeft size={22} className="text-[var(--text-secondary)] opacity-50" />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* FOOTER ACTIONS */}
-                            {!settingsSearch && (
-                                <div className="pt-4 border-t border-[var(--border)] space-y-2">
-                                    <button className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-activity)] transition-all text-left">
-                                        <FileJson size={14} />
-                                        <span>Open settings.json</span>
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveView('marketplace')}
-                                        className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-activity)] transition-all text-left"
-                                    >
-                                        <Palette size={14} />
-                                        <span>Configure Themes</span>
-                                    </button>
-                                </div>
-                            )}
                         </div>
                     </div>
                 )}
