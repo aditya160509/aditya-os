@@ -4,7 +4,7 @@ import Icon from '../general/Icon';
 import { playUiSound } from '../../utils/sound';
 import { FS_ROOT, FSNode, fsJoin, fsResolve, openApp } from '../../utils/filesystem';
 import { unlock } from '../../utils/achievements';
-import { PET_SIZE_OPTIONS, clampPetSize, DEFAULT_PET_SIZE } from '../../utils/pet';
+import { PET_SIZE_OPTIONS, PET_SPRITE_OPTIONS, clampPetSize, clampPetSprite, DEFAULT_PET_SIZE, DEFAULT_PET_SPRITE } from '../../utils/pet';
 import { announceWallpaper, BUILTIN_COUNT, builtinId, builtinSrc, builtinThumb, clearWallpaper, loadWallpaper, saveBuiltin, saveColor, saveWallpaper, Wallpaper } from '../../utils/wallpaper';
 
 type Props = WindowAppProps;
@@ -337,10 +337,15 @@ export const ClaudeApp: React.FC<Props> = (props) => {
     const [streaming, setStreaming] = useState(false);
     const [artifact, setArtifact] = useState<AssistantArtifact | null>(null);
     const [copied, setCopied] = useState<string | null>(null);
+    const [sessionFilter, setSessionFilter] = useState('');
+    const [contextMode, setContextMode] = useState<'everything' | 'research' | 'projects' | 'desktop'>('everything');
+    const [contextOpen, setContextOpen] = useState(false);
+    const [commandOpen, setCommandOpen] = useState(false);
     const scroller = useRef<HTMLDivElement>(null);
     const timers = useRef<number[]>([]);
     const activeChat = chats.find((chat) => chat.id === activeId) || chats[0] || SEED_CHATS[0];
     const turns = activeChat.turns;
+    const visibleChats = chats.filter((chat) => chat.title.toLowerCase().includes(sessionFilter.toLowerCase()));
 
     useEffect(() => {
         try { localStorage.setItem(ASSISTANT_STORAGE, JSON.stringify(chats)); } catch { /* private mode */ }
@@ -354,6 +359,21 @@ export const ClaudeApp: React.FC<Props> = (props) => {
         const el = scroller.current;
         if (el) el.scrollTop = el.scrollHeight;
     }, [activeId, turns.length, streaming]);
+
+    useEffect(() => {
+        const onKey = (event: KeyboardEvent) => {
+            if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+                event.preventDefault();
+                setCommandOpen(true);
+            }
+            if (event.key === 'Escape') {
+                setCommandOpen(false);
+                setContextOpen(false);
+            }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, []);
 
     const stop = () => {
         timers.current.forEach(window.clearTimeout);
@@ -446,22 +466,50 @@ export const ClaudeApp: React.FC<Props> = (props) => {
             <div className="assistant-v2">
                 <aside className="assistant-sidebar">
                     <div className="assistant-brand"><span>✳</span><b>Assistant</b></div>
-                    <button type="button" className="assistant-new-chat" onClick={newChat}>＋ <span>New chat</span></button>
+                    <div className="assistant-sidebar-actions">
+                        <button type="button" className="assistant-new-chat" onClick={newChat}>＋ <span>New chat</span></button>
+                        <button type="button" className="assistant-command-button" onClick={() => setCommandOpen(true)} title="Search chats (⌘K)">⌘K</button>
+                    </div>
                     <div className="assistant-sidebar-label">Recent</div>
+                    <input
+                        className="assistant-session-search"
+                        value={sessionFilter}
+                        onChange={(event) => setSessionFilter(event.target.value)}
+                        placeholder="Search conversations"
+                        aria-label="Search conversations"
+                    />
                     <div className="assistant-chat-list">
-                        {chats.map((chat) => (
+                        {visibleChats.map((chat) => (
                             <button key={chat.id} type="button" className={`assistant-chat${chat.id === activeChat.id ? ' active' : ''}`} onClick={() => { stop(); setActiveId(chat.id); setArtifact(null); }}>
                                 <span className="assistant-chat-glyph">◦</span><span>{chat.title}</span>
                             </button>
                         ))}
+                        {!visibleChats.length && <span className="assistant-empty-search">No matching chats</span>}
                     </div>
                     <div className="assistant-local-note"><span className="assistant-local-dot" /><span className="assistant-local-copy">Local workspace<small>Nothing leaves this device</small></span></div>
                 </aside>
                 <main className="assistant-main">
                     <header className="assistant-header">
-                        <div><b>{activeChat.title}</b><small>Assistant · local corpus</small></div>
-                        <button type="button" title="Local-only assistant">⌘ Local</button>
+                        <div className="assistant-header-title"><b>{activeChat.title}</b><small>Assistant · local corpus</small></div>
+                        <div className="assistant-header-tools">
+                            <span className={`assistant-run-state${streaming ? ' is-busy' : ''}`}><i />{streaming ? 'Working locally' : 'Ready'}</span>
+                            <button type="button" className="assistant-header-button" onClick={() => setCommandOpen(true)} title="Open command palette">⌘K</button>
+                            <button type="button" className="assistant-header-button" onClick={() => setArtifact((current) => current ? null : artifactFor(turns[turns.length - 1]?.text || 'research'))} title="Toggle workspace artifact">◈</button>
+                        </div>
                     </header>
+                    <div className="assistant-context-bar">
+                        <div className="assistant-context-copy"><span className="assistant-context-dot" />Local workspace context</div>
+                        <button type="button" onClick={() => setContextOpen((open) => !open)} aria-expanded={contextOpen}>⌘ {contextMode} <span>⌄</span></button>
+                        {contextOpen && (
+                            <div className="assistant-context-menu">
+                                {(['everything', 'research', 'projects', 'desktop'] as const).map((item) => (
+                                    <button key={item} type="button" className={contextMode === item ? 'selected' : ''} onClick={() => { setContextMode(item); setContextOpen(false); }}>
+                                        <span>{contextMode === item ? '✓' : '·'}</span>{item === 'everything' ? 'Everything' : item[0].toUpperCase() + item.slice(1)}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                     <div className="assistant-log" ref={scroller}>
                     {turns.length === 0 && (
                         <div className="assistant-intro">
@@ -487,6 +535,12 @@ export const ClaudeApp: React.FC<Props> = (props) => {
                                     {streaming && i === turns.length - 1 && t.role === 'assistant' && t.text && <span className="assistant-caret" />}
                                 </div>
                                 {t.role === 'assistant' && t.text && !streaming && (
+                                    <details className="assistant-trace">
+                                        <summary>Local trace · {contextMode}</summary>
+                                        <span>Matched the on-device corpus · no network request · response assembled in this tab.</span>
+                                    </details>
+                                )}
+                                {t.role === 'assistant' && t.text && !streaming && (
                                     <div className="assistant-message-actions">
                                         <button type="button" title="Copy response" onClick={() => copy(t)}>{copied === t.id ? 'Copied' : 'Copy'}</button>
                                         <button type="button" title="Helpful" className={t.feedback === 'up' ? 'selected' : ''} onClick={() => feedback(t.id, 'up')}>↑</button>
@@ -500,7 +554,7 @@ export const ClaudeApp: React.FC<Props> = (props) => {
                     </div>
                     <form className="assistant-composer" onSubmit={(e: FormEvent) => { e.preventDefault(); ask(draft); }}>
                         <div className="assistant-composer-row">
-                            <button type="button" className="assistant-attach" title="Attachments stay local">＋</button>
+                            <button type="button" className="assistant-attach" title="Choose local context" onClick={() => setContextOpen((open) => !open)}>＋</button>
                             <textarea
                                 value={draft}
                                 rows={1}
@@ -516,13 +570,33 @@ export const ClaudeApp: React.FC<Props> = (props) => {
                     </form>
                     <div className="assistant-disclaimer">The local corpus can be wrong or incomplete. Nothing is sent to a model.</div>
                 </main>
-                {artifact && (
+                {artifact ? (
                     <aside className="assistant-artifact">
                         <div className="assistant-artifact-header"><span>Artifact</span><button type="button" title="Close artifact" onClick={() => setArtifact(null)}>×</button></div>
                         <div className="assistant-artifact-file"><span>◈</span><b>{artifact.title}</b><small>{artifact.language}</small></div>
                         <pre><code>{artifact.body}</code></pre>
                         <small className="assistant-artifact-note">Generated from the local workspace corpus</small>
                     </aside>
+                ) : (
+                    <aside className="assistant-inspector">
+                        <div className="assistant-inspector-title"><span>Workspace</span><span className="assistant-inspector-live">LIVE</span></div>
+                        <div className="assistant-inspector-card"><span className="assistant-inspector-icon">◌</span><div><b>Local corpus</b><small>Research, projects &amp; apps</small></div></div>
+                        <div className="assistant-inspector-section">Try asking</div>
+                        {[SUGGESTIONS[0], SUGGESTIONS[2], SUGGESTIONS[1]].map((item) => <button key={item} type="button" className="assistant-inspector-prompt" onClick={() => ask(item)}>{item}<span>↗</span></button>)}
+                        <div className="assistant-inspector-section">Session notes</div>
+                        <p className="assistant-inspector-note">Replies are simulated from bundled text. Your prompts stay inside this browser.</p>
+                    </aside>
+                )}
+                {commandOpen && (
+                    <div className="assistant-command-overlay" role="dialog" aria-modal="true" aria-label="Assistant command palette" onMouseDown={() => setCommandOpen(false)}>
+                        <div className="assistant-command-palette" onMouseDown={(event) => event.stopPropagation()}>
+                            <div className="assistant-command-search"><span>⌘</span><input autoFocus placeholder="Search chats or ask a question" onChange={(event) => setSessionFilter(event.target.value)} /></div>
+                            <div className="assistant-command-label">Quick actions</div>
+                            <button type="button" onClick={() => { newChat(); setCommandOpen(false); }}>＋ Start a new conversation <kbd>N</kbd></button>
+                            {SUGGESTIONS.map((item) => <button key={item} type="button" onClick={() => { ask(item); setCommandOpen(false); }}>{item}<kbd>↵</kbd></button>)}
+                            <div className="assistant-command-footer">Esc to close · answers stay on-device</div>
+                        </div>
+                    </div>
                 )}
             </div>
         </ShellWindow>
@@ -1068,6 +1142,7 @@ type Prefs = {
     iconSize: number;
     pet: string;
     petSize: number;
+    petSprite: string;
 };
 
 const loadPrefs = (): Prefs => ({
@@ -1082,6 +1157,7 @@ const loadPrefs = (): Prefs => ({
     iconSize: Number(localStorage.getItem('iconSize') || '88'),
     pet: localStorage.getItem('aditya-pet') || 'hermes',
     petSize: clampPetSize(Number(localStorage.getItem('aditya-pet-size') || DEFAULT_PET_SIZE)),
+    petSprite: clampPetSprite(localStorage.getItem('aditya-pet-sprite') || DEFAULT_PET_SPRITE),
 });
 
 /**
@@ -1113,6 +1189,7 @@ const INDEX: { label: string; tab: Tab; keywords: string }[] = [
     { label: 'Language', tab: 'Personalisation', keywords: 'locale region translation' },
     { label: 'Icon size', tab: 'Desktop', keywords: 'shortcut large small scale' },
     { label: 'Desktop pet size', tab: 'Desktop', keywords: 'pet sprite companion tiny small large huge scale' },
+    { label: 'Desktop pet sprite', tab: 'Desktop', keywords: 'pet sprite style palette amber mono pixel hermes companion' },
     { label: '24-hour clock', tab: 'Desktop', keywords: 'time format taskbar toolbar' },
     { label: 'Master sound', tab: 'Sound', keywords: 'audio mute ui clicks' },
     { label: 'Volume', tab: 'Sound', keywords: 'audio loudness level' },
@@ -1181,6 +1258,7 @@ export const SettingsApp: React.FC<Props> = (props) => {
         localStorage.setItem('iconSize', String(next.iconSize));
         localStorage.setItem('aditya-pet', next.pet);
         localStorage.setItem('aditya-pet-size', String(clampPetSize(next.petSize)));
+        localStorage.setItem('aditya-pet-sprite', clampPetSprite(next.petSprite));
         window.dispatchEvent(new CustomEvent('aditya-wallpaper', { detail: { speed: next.speed, dim: next.dim } }));
         window.dispatchEvent(new CustomEvent('aditya-prefs', { detail: next }));
     };
@@ -1191,8 +1269,19 @@ export const SettingsApp: React.FC<Props> = (props) => {
     const [wall, setWall] = useState<Wallpaper | null>(null);
     const [wallErr, setWallErr] = useState('');
     const [busyWall, setBusyWall] = useState(false);
+    const previewVideoRef = useRef<HTMLVideoElement>(null);
+    const [wallPreviewUrl, setWallPreviewUrl] = useState<string | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
     useEffect(() => { loadWallpaper().then(setWall); }, []);
+    useEffect(() => {
+        if (!wall?.blob) {
+            setWallPreviewUrl(null);
+            return;
+        }
+        const url = URL.createObjectURL(wall.blob);
+        setWallPreviewUrl(url);
+        return () => URL.revokeObjectURL(url);
+    }, [wall]);
     const applyFile = async (file?: File | null) => {
         if (!file) return;
         setWallErr('');
@@ -1222,6 +1311,24 @@ export const SettingsApp: React.FC<Props> = (props) => {
         unlock('decorator');
         announceWallpaper();
     };
+    const fullscreenPreview = async () => {
+        const video = previewVideoRef.current as (HTMLVideoElement & {
+            webkitEnterFullscreen?: () => void;
+        }) | null;
+        if (!video) return;
+        try {
+            if (document.fullscreenElement) {
+                await document.exitFullscreen();
+            } else if (video.requestFullscreen) {
+                await video.requestFullscreen();
+            } else {
+                video.webkitEnterFullscreen?.();
+            }
+        } catch {
+            // Fullscreen can be denied by an embedded browser or an OS gesture
+            // policy; the inline controls remain fully usable in that case.
+        }
+    };
     const WALL_COLORS: [string, string][] = [
         ['Ink', '#0e1116'],
         ['Slate', 'linear-gradient(160deg,#1f2733,#0d1117)'],
@@ -1239,6 +1346,22 @@ export const SettingsApp: React.FC<Props> = (props) => {
         : wall
             ? `Your ${wall.kind === 'color' ? 'colour' : wall.kind}${wall.blob ? ` · ${(wall.blob.size / 1024 / 1024).toFixed(1)} MB on this device` : ''}`
             : 'Bundled One Piece loop';
+
+    const previewKind = wall?.kind || 'builtin';
+    const previewVideoSrc = wall?.kind === 'builtin'
+        ? wall.src
+        : wall?.kind === 'video'
+            ? wallPreviewUrl
+            : 'assets/wallspace-one-piece.mp4';
+    const previewLabel = wall
+        ? wall.kind === 'builtin'
+            ? wall.src?.split('/').pop()?.replace('.mp4', '') || 'selected loop'
+            : wall.kind === 'video'
+                ? 'your video'
+                : wall.kind === 'image'
+                    ? 'your image'
+                    : 'colour'
+        : 'default loop';
 
     return (
         <ShellWindow
@@ -1312,6 +1435,44 @@ export const SettingsApp: React.FC<Props> = (props) => {
                     {tab === 'Appearance' && (
                         <>
                             <section>
+                                <div className="wall-preview-heading">
+                                    <div>
+                                        <h3>Preview</h3>
+                                        <p className="w95-note">See the exact wallpaper before applying it. Use the native controls or fullscreen for a closer look.</p>
+                                    </div>
+                                    <span className="wall-preview-status">{previewLabel}</span>
+                                </div>
+                                <div className="wall-preview-media">
+                                    {previewKind === 'image' && wallPreviewUrl ? (
+                                        <img src={wallPreviewUrl} alt="Preview of your wallpaper" />
+                                    ) : previewKind === 'color' ? (
+                                        <div className="wall-preview-color" style={{ background: wall?.color }} aria-label="Colour wallpaper preview" />
+                                    ) : previewVideoSrc ? (
+                                        <video
+                                            ref={previewVideoRef}
+                                            key={previewVideoSrc}
+                                            src={previewVideoSrc}
+                                            autoPlay
+                                            muted
+                                            loop
+                                            playsInline
+                                            controls
+                                            preload="metadata"
+                                            aria-label={`Preview of ${previewLabel}`}
+                                        />
+                                    ) : (
+                                        <div className="wall-preview-empty">Choose a wallpaper to preview it.</div>
+                                    )}
+                                </div>
+                                <div className="wall-preview-actions">
+                                    <span>Selected wallpapers play on the desktop immediately.</span>
+                                    <button type="button" onClick={fullscreenPreview} disabled={previewKind !== 'video' && previewKind !== 'builtin'}>
+                                        ⛶ Fullscreen video
+                                    </button>
+                                </div>
+                            </section>
+
+                            <section>
                                 <h3>Your own background</h3>
                                 <p className="w95-note">
                                     Pick a picture or a clip. It is resized in the browser and stored on
@@ -1344,11 +1505,12 @@ export const SettingsApp: React.FC<Props> = (props) => {
                                     {BUILTIN_COUNT} loops. Click one to apply it, or hit ⤓ on the
                                     corner to download the MP4 and keep it.
                                 </p>
-                                <div className="wall-grid">
+                                <div className="wall-grid" tabIndex={0} aria-label="Scrollable Wallspace wallpaper gallery">
                                     {Array.from({ length: BUILTIN_COUNT }, (_, i) => builtinId(i + 1)).map((id) => (
                                         <div key={id} className={`wall-cell${wall?.src?.includes(id) ? ' on' : ''}`}>
-                                            <button title={`Use ${id}`} onClick={() => pickBuiltin(id)}>
+                                            <button title={`Use ${id}`} aria-label={`Use ${id}`} onClick={() => pickBuiltin(id)}>
                                                 <img src={builtinThumb(id)} alt="" loading="lazy" decoding="async" />
+                                                <span className="wall-number">{id.replace('wall-', '')}</span>
                                             </button>
                                             <a
                                                 className="wall-get"
@@ -1428,6 +1590,21 @@ export const SettingsApp: React.FC<Props> = (props) => {
                                                 aria-pressed={p.petSize === option.value}
                                             >
                                                 {option.label} · {option.value}px
+                                            </button>
+                                        ))}
+                                    </div>
+                                </Row>
+                                <Row title="Sprite style" hint="Hermes artwork with lightweight palette variants">
+                                    <div className="wall-actions pet-size-actions pet-sprite-actions">
+                                        {PET_SPRITE_OPTIONS.map((option) => (
+                                            <button
+                                                key={option.value}
+                                                className={p.petSprite === option.value ? 'wall-primary' : ''}
+                                                onClick={() => set('petSprite', option.value)}
+                                                aria-pressed={p.petSprite === option.value}
+                                                title={option.note}
+                                            >
+                                                {option.label}
                                             </button>
                                         ))}
                                     </div>

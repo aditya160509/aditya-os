@@ -115,6 +115,21 @@ body > canvas {
   transform: scale(1.02);
 }
 
+/* Standalone project briefs keep the same copy as the cards, but give it a
+   readable long-form measure when a card's internal link is opened directly. */
+.project-detail-copy > div > p:first-child {
+  max-width: 60rem;
+  font-size: clamp(1.05rem, 2vw, 1.45rem);
+  line-height: 1.55;
+}
+.project-detail-copy h3 {
+  margin-top: 2.25rem;
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+}
+.project-detail-copy p {
+  overflow-wrap: anywhere;
+}
+
 @layer utilities {
   .canvas-overlay-mode {
     pointer-events: none;

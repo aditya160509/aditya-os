@@ -10,9 +10,13 @@ Ordered so a session can start at the top and work down.
 | 1 | Dead textures | 57 MB → **8.8 MB** |
 | 2 | GitHub stars button | Removed from source and built HTML |
 | 3 | Site menu | Research added; missing `about`/`blog` thumbnails restored |
+| 6 | Project detail routes | Five placeholder links now open generated, responsive `/portfolio/projects/<slug>/` pages with playable previews and full copy |
+| 7 | Desktop pet | Hermes-derived frames now have four selectable styles and a low-overhead idle / roam / cursor-follow loop |
+| 8 | Assistant UI | Added command palette, conversation search, context picker, local run state, trace disclosure and a responsive workspace inspector |
 | 9a | Wallpaper downloads | Always visible and works on touch |
+| 9b | Mobile install | Existing PWA install flow confirmed; settings, assistant and install affordances now collapse for narrow screens |
 
-Also fixed the online-users chip: it now defaults to the live relay instead of being hidden behind a missing `NEXT_PUBLIC_WS_URL`. The remaining backlog is below. The next quickest items are **§5** (rewrite project copy and remove “Honest data”) and **§7** (widen the pet’s cursor-follow radius).
+Also fixed the online-users chip: it now defaults to the live relay instead of being hidden behind a missing `NEXT_PUBLIC_WS_URL`. The build remains full-quality for wallpapers; the new work is in initial loading, navigation and mobile affordances rather than media re-encoding.
 
 Repo layout, for reference:
 
@@ -140,7 +144,7 @@ Sources: `atlas.md`, `nexus.md`, `daedulus.md`, `glassbox.md`, `phenosync.md`.
 
 **Current state:** 8 Hermes-derived frames, wanders, follows the cursor within a wider viewport-relative radius, and now has live size presets from 48px (Tiny) through 160px (Showcase).
 
-Implemented: the pet now follows from a wider viewport-relative radius, can be turned off or selected as Hermes from Settings → Desktop, offers six persisted size presets, and applies changes live. Additional licensed sprite sets can be added later under the same picker without changing the behavior.
+Implemented: the pet now follows from a wider viewport-relative radius, pauses between walks, roams toward bounded destinations, and updates its position directly in the DOM so the animation does not re-render the desktop every frame. Settings → Desktop offers Hermes, Amber, Mono and Pixel presentation styles plus six persisted size presets; the style choice applies live. Hermes currently publishes one official animated character set, so these are palette/render variants rather than uncredited artwork from a second source.
 
 **Do:**
 1. **Widen the follow.** Raise the radius to roughly a third of the viewport, and make it approach continuously rather than only when close. Keep an idle/nap state so it isn't glued to the pointer.
@@ -167,7 +171,7 @@ Implemented: the pet now follows from a wider viewport-relative radius, can be t
 
 Grow the corpus in the same file — it is a list of `{ match: RegExp, reply: string }`. More entries make it feel less canned.
 
-Implemented: Claude-inspired dark workspace with seeded local conversations, persistent chat history, new-chat flow, safe Markdown headings/lists/tables/code rendering, copy and feedback controls, regenerate, stop/thinking states, local-corpus model indicator, character count, and contextual artifact previews. It remains fully local with no model, analytics, or networked chat.
+Implemented: Claude-inspired dark workspace with seeded local conversations, persistent chat history, new-chat flow, safe Markdown headings/lists/tables/code rendering, copy and feedback controls, regenerate, stop/thinking states, local-corpus model indicator, character count, contextual artifact previews, conversation search, a keyboard command palette (`⌘K`), context scopes, a local run-state indicator, expandable local trace and a responsive inspector rail. It remains fully local with no model, analytics, or networked chat.
 
 ---
 

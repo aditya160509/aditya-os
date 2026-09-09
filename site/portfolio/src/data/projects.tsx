@@ -214,7 +214,7 @@ const projects: Project[] = [
       frontend: [PROJECT_SKILLS.next, PROJECT_SKILLS.ts, PROJECT_SKILLS.react, PROJECT_SKILLS.tailwind],
       backend: [PROJECT_SKILLS.python, PROJECT_SKILLS.postgres, PROJECT_SKILLS.docker],
     },
-    live: "#",
+    live: "/projects/atlas",
     get content() {
       return (
         <div>
@@ -258,7 +258,7 @@ const projects: Project[] = [
       frontend: [PROJECT_SKILLS.ts, PROJECT_SKILLS.react],
       backend: [PROJECT_SKILLS.python, PROJECT_SKILLS.docker, PROJECT_SKILLS.postgres],
     },
-    live: "#",
+    live: "/projects/nexus",
     get content() {
       return (
         <div>
@@ -299,7 +299,7 @@ const projects: Project[] = [
       frontend: [PROJECT_SKILLS.next, PROJECT_SKILLS.react, PROJECT_SKILLS.tailwind],
       backend: [PROJECT_SKILLS.python, PROJECT_SKILLS.postgres, PROJECT_SKILLS.redis, PROJECT_SKILLS.docker],
     },
-    live: "#",
+    live: "/projects/glassbox",
     get content() {
       return (
         <div>
@@ -342,7 +342,7 @@ const projects: Project[] = [
       frontend: [PROJECT_SKILLS.next, PROJECT_SKILLS.ts, PROJECT_SKILLS.react, PROJECT_SKILLS.spline, PROJECT_SKILLS.tailwind],
       backend: [PROJECT_SKILLS.python, PROJECT_SKILLS.postgres],
     },
-    live: "#",
+    live: "/projects/daedalus",
     get content() {
       return (
         <div>
@@ -374,7 +374,7 @@ const projects: Project[] = [
       frontend: [PROJECT_SKILLS.ts, PROJECT_SKILLS.react],
       backend: [PROJECT_SKILLS.python, PROJECT_SKILLS.postgres],
     },
-    live: "#",
+    live: "/projects/phenosync",
     github: "https://github.com/aditya160509/phenosync",
     get content() {
       return (
