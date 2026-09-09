@@ -1050,10 +1050,10 @@ const loadPrefs = (): Prefs => ({
 type Tab = 'Appearance' | 'Personalisation' | 'Desktop' | 'Sound' | 'System' | 'About';
 
 const TABS: { id: Tab; glyph: string; blurb: string }[] = [
-    { id: 'Appearance', glyph: '▤', blurb: 'Wallpaper, colours, motion' },
+    { id: 'Appearance', glyph: '▤', blurb: 'Wallpaper and colours' },
     { id: 'Personalisation', glyph: '◧', blurb: 'Start-up, language, defaults' },
     { id: 'Desktop', glyph: '▥', blurb: 'Icons, clock, shortcuts' },
-    { id: 'Sound', glyph: '◈', blurb: 'Output and volume' },
+    { id: 'Sound', glyph: '◈', blurb: 'Audio, motion and shading' },
     { id: 'System', glyph: '⌘', blurb: 'Shell, storage, performance' },
     { id: 'About', glyph: '☗', blurb: 'Version and credits' },
 ];
@@ -1061,9 +1061,9 @@ const TABS: { id: Tab; glyph: string; blurb: string }[] = [
 /** Everything the search box can find, so a control is one query away. */
 const INDEX: { label: string; tab: Tab; keywords: string }[] = [
     { label: 'Wallpaper', tab: 'Appearance', keywords: 'background picture video loop wallspace image' },
-    { label: 'Desktop shading', tab: 'Appearance', keywords: 'dim darken overlay contrast' },
-    { label: 'Playback speed', tab: 'Appearance', keywords: 'wallpaper video speed rate' },
-    { label: 'Reduce motion', tab: 'Appearance', keywords: 'animation accessibility still' },
+    { label: 'Desktop shading', tab: 'Sound', keywords: 'dim darken overlay contrast' },
+    { label: 'Playback speed', tab: 'Sound', keywords: 'wallpaper video speed rate' },
+    { label: 'Reduce motion', tab: 'Sound', keywords: 'animation accessibility still' },
     { label: 'Auto-open Portfolio', tab: 'Personalisation', keywords: 'startup boot first window autostart' },
     { label: 'Skip boot animation', tab: 'Personalisation', keywords: 'startup fast boot 3d' },
     { label: 'Language', tab: 'Personalisation', keywords: 'locale region translation' },
@@ -1389,7 +1389,7 @@ export const SettingsApp: React.FC<Props> = (props) => {
                                     {Array.from({ length: BUILTIN_COUNT }, (_, i) => builtinId(i + 1)).map((id) => (
                                         <div key={id} className={`wall-cell${wall?.src?.includes(id) ? ' on' : ''}`}>
                                             <button title={`Use ${id}`} aria-label={`Use ${id}`} onClick={() => pickBuiltin(id)}>
-                                                <img src={builtinThumb(id)} alt="" decoding="async" />
+                                                <img src={builtinThumb(id)} alt="" decoding="sync" />
                                                 <span className="wall-number">{id.replace('wall-', '')}</span>
                                             </button>
                                             <a
@@ -1404,20 +1404,6 @@ export const SettingsApp: React.FC<Props> = (props) => {
                                 </div>
                             </section>
 
-                            <section>
-                                <h3>Rendering</h3>
-                                <Row title="Playback speed" hint="How fast a video wallpaper loops">
-                                    <Slider value={p.speed} min={0.5} max={2.5} step={0.05}
-                                        onChange={(n) => set('speed', n)} format={(n) => `${n.toFixed(2)}×`} />
-                                </Row>
-                                <Row title="Desktop shading" hint="Darkens the wallpaper so icons stay legible">
-                                    <Slider value={p.dim} min={0} max={0.6} step={0.01}
-                                        onChange={(n) => set('dim', n)} format={(n) => `${Math.round(n * 100)}%`} />
-                                </Row>
-                                <Row title="Reduce motion" hint="Pauses ambient animation across the desktop">
-                                    <Switch on={p.reduceMotion} label="Reduce motion" onChange={() => set('reduceMotion', !p.reduceMotion)} />
-                                </Row>
-                            </section>
                         </>
                     )}
 
@@ -1508,16 +1494,32 @@ export const SettingsApp: React.FC<Props> = (props) => {
                     )}
 
                     {tab === 'Sound' && (
-                        <section>
-                            <h3>Audio</h3>
-                            <Row title="Master sound" hint="Interface clicks and ambience">
-                                <Switch on={p.sound} label="Master sound" onChange={() => set('sound', !p.sound)} />
-                            </Row>
-                            <Row title="Volume" hint="Applies to every app in the desktop">
-                                <Slider value={p.volume} min={0} max={1} step={0.05}
-                                    onChange={(n) => set('volume', n)} format={(n) => `${Math.round(n * 100)}%`} />
-                            </Row>
-                        </section>
+                        <>
+                            <section>
+                                <h3>Audio</h3>
+                                <Row title="Master sound" hint="Interface clicks and ambience">
+                                    <Switch on={p.sound} label="Master sound" onChange={() => set('sound', !p.sound)} />
+                                </Row>
+                                <Row title="Volume" hint="Applies to every app in the desktop">
+                                    <Slider value={p.volume} min={0} max={1} step={0.05}
+                                        onChange={(n) => set('volume', n)} format={(n) => `${Math.round(n * 100)}%`} />
+                                </Row>
+                            </section>
+                            <section>
+                                <h3>Motion</h3>
+                                <Row title="Playback speed" hint="How fast a video wallpaper loops">
+                                    <Slider value={p.speed} min={0.5} max={2.5} step={0.05}
+                                        onChange={(n) => set('speed', n)} format={(n) => `${n.toFixed(2)}×`} />
+                                </Row>
+                                <Row title="Desktop shading" hint="Darkens the wallpaper so icons stay legible">
+                                    <Slider value={p.dim} min={0} max={0.6} step={0.01}
+                                        onChange={(n) => set('dim', n)} format={(n) => `${Math.round(n * 100)}%`} />
+                                </Row>
+                                <Row title="Reduce motion" hint="Pauses ambient animation across the desktop">
+                                    <Switch on={p.reduceMotion} label="Reduce motion" onChange={() => set('reduceMotion', !p.reduceMotion)} />
+                                </Row>
+                            </section>
+                        </>
                     )}
 
                     {tab === 'System' && (
