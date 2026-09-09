@@ -15,4 +15,4 @@ services:
     envVars:
       # Every origin allowed to open a socket. Add preview domains as needed.
       - key: ALLOWED_ORIGINS
-        value: https://aditya-os.vercel.app,http://localhost:3000,http://localhost:8080
+        value: https://adityabalaji.vercel.app,https://aditya-os-eight.vercel.app,https://aditya-os.vercel.app,http://localhost:3000,http://localhost:8080
