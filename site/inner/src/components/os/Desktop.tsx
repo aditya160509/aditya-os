@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import Colors from '../../constants/colors';
 import ShutdownSequence from './ShutdownSequence';
 
@@ -6,7 +6,7 @@ import Toolbar from './Toolbar';
 import DesktopShortcut, { DesktopShortcutProps } from './DesktopShortcut';
 import { IconName } from '../../assets/icons';
 import { playUiSound } from '../../utils/sound';
-import { loadWallpaper, Wallpaper } from '../../utils/wallpaper';
+import { loadWallpaper, Wallpaper, builtinThumb } from '../../utils/wallpaper';
 import { noteAppOpened, unlock } from '../../utils/achievements';
 import AchievementToast from './AchievementToast';
 import DesktopPet from './DesktopPet';
@@ -205,6 +205,16 @@ const Desktop: React.FC<DesktopProps> = (props) => {
         };
     }, []);
 
+    // A looping video decode is the single largest continuous GPU and battery
+    // cost on a phone, and it is pure decoration. Touch devices get the loop's
+    // own poster frame instead — same picture, no decode.
+    const staticWallpaper = useMemo(
+        () =>
+            typeof window !== 'undefined' &&
+            (window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 900),
+        []
+    );
+
     // Decoding a looping video in a background tab burns memory and battery for
     // nothing, so pause it whenever the page is hidden.
     useEffect(() => { unlock('first-boot'); }, []);
@@ -393,7 +403,14 @@ const Desktop: React.FC<DesktopProps> = (props) => {
             ) : wallpaper?.kind === 'video' && wallpaperUrl ? (
                 <video ref={videoRef} className="desktop-wallpaper-video" src={wallpaperUrl} autoPlay muted loop playsInline preload="metadata" />
             ) : wallpaper?.kind === 'builtin' && wallpaper.src ? (
-                <video ref={videoRef} className="desktop-wallpaper-video" src={wallpaper.src} autoPlay muted loop playsInline preload="metadata" disablePictureInPicture />
+                staticWallpaper ? (
+                    <div
+                        className="desktop-wallpaper-image"
+                        style={{ backgroundImage: `url(${builtinThumb(wallpaper.src.split('/').pop()!.replace('.mp4', ''))})` }}
+                    />
+                ) : (
+                    <video ref={videoRef} className="desktop-wallpaper-video" src={wallpaper.src} autoPlay muted loop playsInline preload="metadata" disablePictureInPicture />
+                )
             ) : wallpaper?.kind === 'color' ? (
                 <div className="desktop-wallpaper-image" style={{ background: wallpaper.color }} />
             ) : (

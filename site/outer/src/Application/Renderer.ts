@@ -27,6 +27,22 @@ export default class Renderer {
         [uniform: string]: THREE.IUniform<any>;
     };
 
+    /**
+     * A phone renders at devicePixelRatio 3, which is nine times the fragments
+     * of ratio 1 for a screen where the difference is invisible, and MSAA on
+     * top of that is pure cost. Both are dialled back on touch devices.
+     */
+    private lowPower() {
+        return (
+            window.matchMedia('(pointer: coarse)').matches ||
+            window.innerWidth < 900
+        );
+    }
+
+    private targetPixelRatio() {
+        return Math.min(this.sizes.pixelRatio, this.lowPower() ? 1.25 : 2);
+    }
+
     constructor() {
         this.application = new Application();
         this.time = this.application.time;
@@ -40,10 +56,11 @@ export default class Renderer {
     }
 
     setInstance() {
+        const lowPower = this.lowPower();
         this.instance = new THREE.WebGLRenderer({
-            antialias: true,
+            antialias: !lowPower,
             alpha: true,
-            powerPreference: 'high-performance',
+            powerPreference: lowPower ? 'low-power' : 'high-performance',
         });
         // Settings
         // this.instance.physicallyCorrectLights = true;
@@ -51,7 +68,7 @@ export default class Renderer {
         // this.instance.toneMapping = THREE.ACESFilmicToneMapping;
         // this.instance.toneMappingExposure = 0.9;
         this.instance.setSize(this.sizes.width, this.sizes.height);
-        this.instance.setPixelRatio(Math.min(this.sizes.pixelRatio, 2));
+        this.instance.setPixelRatio(this.targetPixelRatio());
         this.instance.setClearColor(0x000000, 0.0);
 
         // Style
@@ -61,7 +78,8 @@ export default class Renderer {
 
         document.querySelector('#webgl')?.appendChild(this.instance.domElement);
 
-        this.overlayInstance = new THREE.WebGLRenderer();
+        this.overlayInstance = new THREE.WebGLRenderer({ antialias: false });
+        this.overlayInstance.setPixelRatio(this.targetPixelRatio());
         this.overlayInstance.setSize(this.sizes.width, this.sizes.height);
         this.overlayInstance.domElement.style.position = 'absolute';
         this.overlayInstance.domElement.style.top = '0px';
@@ -104,12 +122,12 @@ export default class Renderer {
 
     resize() {
         this.instance.setSize(this.sizes.width, this.sizes.height);
-        this.instance.setPixelRatio(Math.min(this.sizes.pixelRatio, 2));
+        this.instance.setPixelRatio(this.targetPixelRatio());
 
         this.cssInstance.setSize(this.sizes.width, this.sizes.height);
 
         this.overlayInstance.setSize(this.sizes.width, this.sizes.height);
-        this.overlayInstance.setPixelRatio(Math.min(this.sizes.pixelRatio, 2));
+        this.overlayInstance.setPixelRatio(this.targetPixelRatio());
     }
 
     update() {
