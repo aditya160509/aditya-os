@@ -6,7 +6,7 @@
   "lang": "en",
   "dir": "ltr",
   "categories": ["productivity", "developer", "portfolio"],
-  "start_url": "/",
+  "start_url": "/desktop/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],

@@ -426,7 +426,7 @@ const Desktop: React.FC<DesktopProps> = (props) => {
                     </div>
                 );
             })}
-            <div style={styles.shortcuts}>
+            <div className="desktop-shortcuts" style={styles.shortcuts}>
                 {shortcuts.map((shortcut, i) => {
                     return (
                         <div

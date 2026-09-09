@@ -63,8 +63,9 @@ const Window: React.FC<WindowProps> = (props) => {
     const startResize = (event: any) => {
         event.preventDefault();
         setIsResizing(true);
-        window.addEventListener('mousemove', onResize, false);
-        window.addEventListener('mouseup', stopResize, false);
+        event.currentTarget?.setPointerCapture?.(event.pointerId);
+        window.addEventListener('pointermove', onResize, false);
+        window.addEventListener('pointerup', stopResize, false);
     };
 
     const onResize = ({ clientX, clientY }: any) => {
@@ -80,8 +81,8 @@ const Window: React.FC<WindowProps> = (props) => {
         setWidth(resizeRef.current.style.width);
         setHeight(resizeRef.current.style.height);
         resizeRef.current.style.opacity = 0;
-        window.removeEventListener('mousemove', onResize, false);
-        window.removeEventListener('mouseup', stopResize, false);
+        window.removeEventListener('pointermove', onResize, false);
+        window.removeEventListener('pointerup', stopResize, false);
     };
 
     const startDrag = (event: any) => {
@@ -92,8 +93,9 @@ const Window: React.FC<WindowProps> = (props) => {
             dragStartX: clientX,
             dragStartY: clientY,
         };
-        window.addEventListener('mousemove', onDrag, false);
-        window.addEventListener('mouseup', stopDrag, false);
+        event.currentTarget?.setPointerCapture?.(event.pointerId);
+        window.addEventListener('pointermove', onDrag, false);
+        window.addEventListener('pointerup', stopDrag, false);
     };
 
     const onDrag = ({ clientX, clientY }: any) => {
@@ -108,8 +110,8 @@ const Window: React.FC<WindowProps> = (props) => {
         const { x, y } = getXYFromDragProps(clientX, clientY);
         setTop(y);
         setLeft(x);
-        window.removeEventListener('mousemove', onDrag, false);
-        window.removeEventListener('mouseup', stopDrag, false);
+        window.removeEventListener('pointermove', onDrag, false);
+        window.removeEventListener('pointerup', stopDrag, false);
     };
 
     const getXYFromDragProps = (
@@ -190,8 +192,9 @@ const Window: React.FC<WindowProps> = (props) => {
     };
 
     return (
-        <div onMouseDown={onWindowInteract} style={styles.container}>
+        <div className="desktop-window-container" onMouseDown={onWindowInteract}>
             <div
+                className="desktop-window"
                 style={Object.assign({}, styles.window, {
                     width,
                     height,
@@ -204,7 +207,7 @@ const Window: React.FC<WindowProps> = (props) => {
                     <div style={styles.windowBorderInner}>
                         <div
                             style={styles.dragHitbox}
-                            onMouseDown={startDrag}
+                            onPointerDown={startDrag}
                         ></div>
                         <div
                             className={props.rainbow ? 'rainbow-wrapper' : ''}
@@ -270,7 +273,7 @@ const Window: React.FC<WindowProps> = (props) => {
                             </div>
                         </div>
                         <div
-                            onMouseDown={startResize}
+                            onPointerDown={startResize}
                             style={styles.resizeHitbox}
                         ></div>
                         <div style={styles.bottomBar}>
@@ -383,6 +386,7 @@ const styles: StyleSheetCSS = {
         top: -8,
         left: -4,
         cursor: 'move',
+        touchAction: 'none',
     },
     windowBorderOuter: {
         border: `1px solid ${Colors.black}`,
@@ -406,6 +410,7 @@ const styles: StyleSheetCSS = {
         bottom: -20,
         right: -20,
         cursor: 'nwse-resize',
+        touchAction: 'none',
     },
     topBar: {
         backgroundColor: Colors.blue,

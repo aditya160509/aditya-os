@@ -45,6 +45,47 @@ div {
     color: #fff;
 }
 
+/* Touch-first presentation: open apps become full-screen panels so visitors
+   never have to drag a 930px desktop window around a phone viewport. The
+   native maximize button still works on larger screens. */
+@media (max-width: 680px) and (hover: none) {
+    .desktop-window {
+        top: 4px !important;
+        left: 4px !important;
+        width: calc(100vw - 8px) !important;
+        height: calc(100dvh - 52px) !important;
+    }
+
+    .desktop-window .studio-app {
+        min-width: 0;
+    }
+
+    .desktop-shortcuts {
+        top: 8px !important;
+        left: 4px !important;
+        transform: scale(.84);
+        transform-origin: top left;
+    }
+
+    .desktop-toolbar {
+        height: 44px !important;
+    }
+
+    .desktop-toolbar .toolbar-text {
+        display: none;
+    }
+
+    .desktop-toolbar-time {
+        width: 78px !important;
+        margin-right: 3px !important;
+    }
+
+    .desktop-start-window {
+        bottom: 40px !important;
+        width: min(256px, calc(100vw - 8px)) !important;
+    }
+}
+
 
 .blinking-cursor {
     background-color: #fff;

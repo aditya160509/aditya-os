@@ -217,7 +217,7 @@ Implemented: Explorer was removed from the application registry, desktop shortcu
 
 Deliberately last: each is a day of work, not an hour.
 
-**a. Mobile.** The single biggest gap. Everything assumes a mouse at 1280px. On a phone there is no hover (project loops and the elastic cursor do nothing), windows are drag-resized, and the 3D shell is heavy. The fix is not responsive CSS — it is a different presentation: apps as a launcher grid, full-screen one at a time, no window chrome. Detect with `(hover: none)` and `(max-width: 768px)`.
+**a. Mobile — substantially improved, final native packaging still out of scope.** The desktop keeps the full 3D experience, but touch devices now open apps as viewport-sized panels, use pointer events for window drag/resize, keep assistant/settings controls within the phone width, and surface the install affordance. The PWA manifest starts installed apps at `/desktop/`, includes Android maskable icons, and links an Apple touch icon. Android Chrome/Edge can install it as a PWA and iOS Safari can use Share → Add to Home Screen; this is not an APK or App Store binary.
 
 **b. First-run cue.** A visitor lands on a dark room with a CRT and no idea the monitor is clickable or that twenty apps are inside. A five-second cue — a pulse on the screen, one line of text — converts more visitors than any new feature.
 

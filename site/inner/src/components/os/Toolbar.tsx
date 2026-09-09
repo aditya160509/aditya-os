@@ -93,9 +93,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
     };
 
     return (
-        <div style={styles.toolbarOuter}>
+        <div className="desktop-toolbar" style={styles.toolbarOuter}>
             {startWindowOpen && (
                 <div
+                    className="desktop-start-window"
                     onMouseDown={onStartWindowClicked}
                     style={styles.startWindow}
                 >
@@ -137,7 +138,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                     </div>
                 </div>
             )}
-            <div style={styles.toolbarInner}>
+            <div className="desktop-toolbar-inner" style={styles.toolbarInner}>
                 <div style={styles.toolbar}>
                     <div
                         style={Object.assign(
@@ -215,7 +216,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                         })}
                     </div>
                 </div>
-                <div style={styles.time}>
+                <div className="desktop-toolbar-time" style={styles.time}>
                     <p
                         style={Object.assign({}, styles.timeText, { cursor: 'pointer' })}
                         title="Fullscreen"
