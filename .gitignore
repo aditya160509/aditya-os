@@ -8,6 +8,7 @@ node_modules/
 site/inner/build/
 site/outer/public/
 site/outer/static/desktop/
+site/outer/static/vscode/
 
 # Reference material captured while designing the desktop (repo root only)
 /assets/

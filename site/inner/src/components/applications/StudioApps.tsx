@@ -9,14 +9,6 @@ import { announceWallpaper, BUILTIN_COUNT, builtinId, builtinSrc, builtinThumb, 
 
 type Props = WindowAppProps;
 
-// Monaco is a separate chunk. Its language workers are still served from the
-// local /desktop/monaco folder, but the editor is not downloaded at boot.
-const LazyEditor = React.lazy(async () => {
-    const module = await import('@monaco-editor/react');
-    module.loader.config({ paths: { vs: 'monaco/vs' } });
-    return { default: module.default };
-});
-
 const links = {
     github: 'https://github.com/aditya160509',
     linkedin: 'https://www.linkedin.com/in/aditya-balaji-50375237a/',
@@ -172,7 +164,7 @@ const CANNED: { match: RegExp; reply: string }[] = [
     },
     {
         match: /how.*(built|made)|stack|three\.?js|webgl|tech/i,
-        reply: "Two apps stacked. The outer shell is Three.js + webpack — the CRT, the room, the monitor you're looking through. The inner desktop is a React app rendered to the screen's texture, so every window, the file system and the games are real DOM, not baked geometry.\n\nThe apps inside are genuine upstream builds rather than lookalikes: lichess chessground for the board, js-dos + DOSBox for Doom, OpenCharts for the terminal, Monaco for the editor.",
+        reply: "Two apps stacked. The outer shell is Three.js + webpack — the CRT, the room, the monitor you're looking through. The inner desktop is a React app rendered to the screen's texture, so every window, the file system and the games are real DOM, not baked geometry.\n\nThe apps inside are genuine upstream builds rather than lookalikes: lichess chessground for the board, js-dos + DOSBox for Doom, OpenCharts for the terminal, and a full VS Code-themed portfolio workspace for the editor.",
     },
     {
         match: /game|doom|chess|tetris|solitaire|minesweeper|wordle/i,
@@ -1059,74 +1051,33 @@ Everything here runs in the browser; edits autosave locally.
     },
 ];
 
-export const DeveloperApp: React.FC<Props> = (props) => {
-    const [active, setActive] = useState(0);
-    const [open, setOpen] = useState<number[]>([0, 1, 2, 3]);
-    const [dirty, setDirty] = useState<Record<string, boolean>>({});
-    const file = CODE_FILES[active];
-    const key = `aditya-code-${file.name}`;
-    const [value, setValue] = useState<string>(() => localStorage.getItem(`aditya-code-${CODE_FILES[0].name}`) ?? CODE_FILES[0].body);
-
-    useEffect(() => {
-        setValue(localStorage.getItem(key) ?? file.body);
-    }, [key, file.body]);
-
-    const onChange = (next?: string) => {
-        setValue(next ?? '');
-        try { localStorage.setItem(key, next ?? ''); } catch {}
-        setDirty((d) => ({ ...d, [file.name]: true }));
-    };
-
-    return (
-        <ShellWindow {...props} title="VS Code — aditya-lab" icon="vscode" className="developer-app" status="VS Code engine · Monaco editor · autosaves locally" width={980} height={640}>
-            <aside>
-                <b>EXPLORER</b>
-                <p>ADITYA-LAB</p>
-                {CODE_FILES.map((f, i) => (
-                    <button key={f.name} className={i === active ? 'active' : ''} onClick={() => { setActive(i); setOpen((o) => (o.includes(i) ? o : [...o, i])); }}>
-                        {f.icon} {f.name}{dirty[f.name] ? ' •' : ''}
-                    </button>
-                ))}
-            </aside>
-            <main>
-                <header className="code-tabs">
-                    {open.map((i) => (
-                        <button key={CODE_FILES[i].name} className={i === active ? 'on' : ''} onClick={() => setActive(i)}>
-                            {CODE_FILES[i].name}
-                            <i onClick={(e) => { e.stopPropagation(); setOpen((o) => o.filter((x) => x !== i)); }}>×</i>
-                        </button>
-                    ))}
-                </header>
-                <div className="code-editor">
-                    <React.Suspense fallback={<div className="editor-loading">Loading Monaco editor…</div>}>
-                        <LazyEditor
-                            height="100%"
-                            theme="vs-dark"
-                            path={file.name}
-                            language={file.lang}
-                            value={value}
-                            onChange={onChange}
-                            options={{
-                                fontSize: 13,
-                                minimap: { enabled: true },
-                                scrollBeyondLastLine: false,
-                                smoothScrolling: true,
-                                renderLineHighlight: 'all',
-                                automaticLayout: true,
-                            }}
-                        />
-                    </React.Suspense>
-                </div>
-                <footer>
-                    <span>⑂ main{dirty[file.name] ? '*' : ''}</span>
-                    <span>◉ 0 errors</span>
-                    <span>UTF-8</span>
-                    <span>{file.lang === 'python' ? 'Python 3.12' : file.lang === 'typescript' ? 'TypeScript 5.6' : file.lang === 'javascript' ? 'Node 22' : 'Markdown'}</span>
-                </footer>
-            </main>
-        </ShellWindow>
-    );
-};
+/**
+ * Code Studio — the exact VS Code portfolio application from
+ * itsnitinr/vscode-portfolio, exported as a small local page and rendered in
+ * this desktop window. Keeping it as its own static app preserves the
+ * upstream Explorer, tabs, command palette, themes, terminal, and responsive
+ * layout without shipping a browser IDE's language workers.
+ */
+export const DeveloperApp: React.FC<Props> = (props) => (
+    <ShellWindow
+        {...props}
+        title="Visual Studio Code — aditya-lab"
+        icon="vscode"
+        className="vscode-host"
+        status="VS Code portfolio · local project data · touch ready"
+        width={1180}
+        height={760}
+        top={8}
+        left={18}
+    >
+        <iframe
+            className="vscode-frame"
+            title="Aditya Balaji Code Studio"
+            src="/vscode/"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
+        />
+    </ShellWindow>
+);
 
 
 
@@ -1698,7 +1649,7 @@ export const SettingsApp: React.FC<Props> = (props) => {
                             <section>
                                 <h3>Built on</h3>
                                 <p className="w95-note">
-                                    Three.js · React · Monaco · lichess chessground · js-dos · OpenCharts ·
+                                    Three.js · React · VS Code portfolio · lichess chessground · js-dos · OpenCharts ·
                                     socket.io. Full credits in CREDITS.md.
                                 </p>
                             </section>

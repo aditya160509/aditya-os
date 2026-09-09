@@ -196,7 +196,7 @@ From the earlier list. All are in `site/outer/static/manifest.webmanifest` and `
 3. **Share target** — manifest `share_target`, so a link shared from a phone opens in the in-OS browser.
 4. **Protocol handler** — manifest `protocol_handlers` for `web+adityaos://`, routed to open a named app.
 5. **App badge** — `navigator.setAppBadge(n)` with the count of locked achievements, cleared when all are unlocked.
-6. **Selective offline** — precache the games and Monaco (a few MB) in `sw.js` so Minesweeper, Solitaire, Tetris, Pong and the editor work with no connection. Video, models and wasm stay excluded — that exclusion is deliberate and must not be removed.
+6. **Selective offline** — precache the games (a few MB) in `sw.js` so Minesweeper, Solitaire, Tetris and Pong work with no connection. The Code Studio portfolio is a separate static page and is not cached offline. Video, models and wasm stay excluded — that exclusion is deliberate and must not be removed.
 7. **Wake lock** — `navigator.wakeLock.request('screen')` while a game or the radio is playing; release on window close or blur.
 
 ---
@@ -233,12 +233,12 @@ Deliberately last: each is a day of work, not an hour.
 
 1. **Lazy-load wallpapers only when selected.** Keep the full-quality files, but avoid requesting the complete wallpaper library when the picker opens. Load a selected wallpaper on demand.
 2. **Remove duplicate audio and other duplicate assets.** Audit the staged output and retain one canonical copy of each file, updating references where necessary.
-3. **Lazy-load Monaco, games, and DOS files.** Load the editor, game bundles, and DOS assets only when their applications open. This should improve startup speed while leaving those features available.
+3. **Lazy-load games and DOS files.** Load game bundles and DOS assets only when their applications open. Code Studio now uses the separately staged VS Code portfolio page, so it does not ship an editor engine with the desktop shell.
 4. **Lazy-load apps generally.** Split heavy applications into dynamic chunks so the initial desktop bundle contains only the shell and lightweight apps.
 
 **Expected result:** roughly **30–60% less initial loading**, depending on the visitor’s browser and which apps are opened. Do not re-encode or reduce the quality of the 88 wallpapers.
 
-Implemented: wallpaper videos use metadata preload and the picker thumbnails are lazy/async; the selected wallpaper remains the only full-quality loop requested. The staging script removes the duplicate inner `/desktop/audio` tree and keeps the outer shell's canonical `/audio` files. Desktop applications are React lazy chunks, with Monaco, DOS/js-dos, and game modules fetched only when opened. The production build now reports a 65.3 KB gzipped desktop entry bundle and 55.9 MiB staged desktop output; the 88 wallpaper files remain unchanged.
+Implemented: wallpaper videos use metadata preload and the picker thumbnails are lazy/async; the selected wallpaper remains the only full-quality loop requested. The staging script removes the duplicate inner `/desktop/audio` tree and keeps the outer shell's canonical `/audio` files. Desktop applications are React lazy chunks, with DOS/js-dos and game modules fetched only when opened; Code Studio is a separately staged static VS Code portfolio. Removing the browser editor's workers and package drops roughly 24 MB from shipped static assets while keeping the full Code Studio routes available. The 88 wallpaper files remain unchanged.
 
 ---
 

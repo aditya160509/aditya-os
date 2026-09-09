@@ -4,16 +4,13 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "install:all": "npm --prefix site/inner install && npm --prefix site/outer install && npm --prefix site/portfolio install --legacy-peer-deps",
+    "install:all": "npm --prefix site/inner install && npm --prefix site/outer install && npm --prefix site/portfolio install --legacy-peer-deps && npm --prefix site/vscode install",
     "dev": "npm run build && npm start",
-    "build": "npm --prefix site/inner run build && node scripts/stage-desktop.mjs && npm --prefix site/portfolio run build && node scripts/stage-portfolio.mjs && npm --prefix site/outer run build",
+    "build": "npm --prefix site/inner run build && node scripts/stage-desktop.mjs && npm --prefix site/portfolio run build && node scripts/stage-portfolio.mjs && npm --prefix site/vscode install && npm --prefix site/vscode run build && node scripts/stage-vscode.mjs && npm --prefix site/outer run build",
     "start": "npm --prefix site/outer start",
     "vercel-build": "npm run build"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
-  },
-  "dependencies": {
-    "monaco-editor": "^0.56.0"
   }
 }

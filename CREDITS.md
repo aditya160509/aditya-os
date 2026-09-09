@@ -29,3 +29,12 @@ The animated desktop companion follows the open Hermes Agent / Petdex sprite for
 - Source artwork: [`apps/desktop/public/hermes-sprite.png`](https://github.com/nousresearch/hermes-agent/blob/main/apps/desktop/public/hermes-sprite.png)
 - Pet documentation: [Hermes pets / Petdex Mascots](https://github.com/nousresearch/hermes-agent/blob/main/website/docs/user-guide/features/pets.md)
 - Local license notice: `site/inner/public/assets/pet/LICENSE-hermes.txt`
+
+## VS Code Portfolio — Nitin Ranganath
+
+A very grateful thank-you to [Nitin Ranganath](https://github.com/itsnitinr) for the excellent [VS Code portfolio](https://github.com/itsnitinr/vscode-portfolio) that now powers the Code Studio application. I kept the project’s VS Code layout, Explorer, tabs, terminal, command palette, theme system, and responsive interaction, then rewrote the identity, links, project descriptions, and research content for Aditya’s portfolio.
+
+The result is a personal adaptation rather than a claim of original authorship. Thank you for sharing such a thoughtful idea and making the code available to build on.
+
+- Repository: [itsnitinr/vscode-portfolio](https://github.com/itsnitinr/vscode-portfolio)
+- Local license notice: `site/vscode/LICENSE`

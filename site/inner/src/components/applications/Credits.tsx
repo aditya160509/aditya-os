@@ -26,21 +26,23 @@ const CREDITS = [
             ['Windows 95 Startup Sound', 'Microsoft'],
         ],
     },
-    {
-        title: 'Special Thanks',
-        rows: [
-            ['Bruno Simon', 'SimonDev'],
-            ['Henry Heffernan', 'Original shell design'],
-            ['Mom, Dad & Family', 'Everything else'],
-        ],
-    },
-    {
-        title: 'Inspiration',
-        rows: [
-            ['Bruno Simon', 'Jesse Zhou'],
-            ['Open Source', 'Everyone linked in Settings'],
-        ],
-    },
+        {
+            title: 'Special Thanks',
+            rows: [
+                ['Bruno Simon', 'SimonDev'],
+                ['Henry Heffernan', 'Original shell design'],
+                ['Nitin Ranganath', 'VS Code portfolio workspace'],
+                ['Mom, Dad & Family', 'Everything else'],
+            ],
+        },
+        {
+            title: 'Inspiration',
+            rows: [
+                ['itsnitinr/vscode-portfolio', 'VS Code layout + interactions'],
+                ['Nous Research / Hermes', 'Desktop companion sprites'],
+                ['Open Source', 'Everyone linked in CREDITS.md'],
+            ],
+        },
 ];
 
 const Credits: React.FC<CreditsProps> = (props) => {
