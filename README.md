@@ -33,7 +33,7 @@ Three.js shell is bundled into `site/outer/public`.
 | VS Code | Monaco editor, local autosave |
 | Ghostty | `zerebos/ghostty-config` (MIT), built from source |
 | Chrome / Safari | in-desktop tabbed browser (Google renders via `webhp?igu=1`) |
-| Terminal + Explorer | shared virtual file system (`src/utils/filesystem.ts`) |
+| Terminal | shared virtual file system (`src/utils/filesystem.ts`) |
 | Minesweeper | `nickarocho/minesweeper` |
 | Solitaire | `scarolan/klondike` (MIT) |
 | Tetris · Pong | straker's Basic HTML Games (CC0) |

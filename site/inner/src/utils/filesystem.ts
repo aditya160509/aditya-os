@@ -1,4 +1,4 @@
-// Shared virtual filesystem — powers the Explorer window AND the Terminal.
+// Shared virtual filesystem — powers the Terminal and local file tools.
 // One source of truth: C:\ADITYA\...
 
 export type FSNode = {

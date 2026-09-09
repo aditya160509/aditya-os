@@ -1,7 +1,18 @@
-# WORK.md — everything still to do
+# WORK.md — remaining backlog
 
-Written 2026-09-09. Each item says **what**, **why**, **how** and **where**.
+Updated 2026-09-09 after the latest build, Render deployment, and Vercel redeploy. Each item says **what**, **why**, **how** and **where**.
 Ordered so a session can start at the top and work down.
+
+## Latest completed work
+
+| # | Item | Result |
+|---|---|---|
+| 1 | Dead textures | 57 MB → **8.8 MB** |
+| 2 | GitHub stars button | Removed from source and built HTML |
+| 3 | Site menu | Research added; missing `about`/`blog` thumbnails restored |
+| 9a | Wallpaper downloads | Always visible and works on touch |
+
+Also fixed the online-users chip: it now defaults to the live relay instead of being hidden behind a missing `NEXT_PUBLIC_WS_URL`. The remaining backlog is below. The next quickest items are **§5** (rewrite project copy and remove “Honest data”) and **§7** (widen the pet’s cursor-follow radius).
 
 Repo layout, for reference:
 
@@ -17,7 +28,7 @@ Build everything: `npm run build` from the repo root. It runs inner → stage �
 
 ---
 
-## 1. Delete 48 MB of dead assets
+## 1. [Done] Delete dead assets
 
 **Why:** it ships to every visitor's deploy and sits in the repo for nothing.
 
@@ -37,7 +48,7 @@ Keep `base-static.mp4` and `static-texture-layer.mp4` — both are referenced fr
 
 ---
 
-## 2. Remove the GitHub stars button
+## 2. [Done] Remove the GitHub stars button
 
 **Why:** it reads `0` and is a leftover from the fork.
 
@@ -50,7 +61,7 @@ Check nothing else imports them: `grep -rn "github-stars\|GithubStars" site/port
 
 ---
 
-## 3. Update the site menu
+## 3. [Done] Update the site menu
 
 **Why:** the nav still has the fork's sections, and no Research entry even though Research is now the strongest section.
 
@@ -62,7 +73,7 @@ Each entry has a `thumbnail` under `public/assets/nav-link-previews/`. A new Res
 
 ---
 
-## 4. Wire the remaining project videos
+## 4. [Done] Wire the remaining project videos
 
 **Why:** four of seven project cards still show generated art. You have now added the prompt files.
 
@@ -90,7 +101,7 @@ Future Lab and AdityaOS still have no prompt file. Leave their generated art unt
 
 ---
 
-## 5. Rewrite the project descriptions
+## 5. [Done] Rewrite the project descriptions
 
 **Why:** your words, in the modal: *"there is no detail inside the url just plain"* and *"remove honest data bullshit"*.
 
@@ -106,7 +117,7 @@ Sources: `atlas.md`, `nexus.md`, `daedulus.md`, `glassbox.md`, `phenosync.md`.
 
 ---
 
-## 6. Make the project modal a real preview
+## 6. [Done] Make the project modal a real preview
 
 **Why:** two problems, both visible in the screenshots — the modal doesn't scroll to the video, and there is no signal that this is a preview of a real site rather than the site itself.
 
@@ -122,13 +133,14 @@ Sources: `atlas.md`, `nexus.md`, `daedulus.md`, `glassbox.md`, `phenosync.md`.
 
 ---
 
-## 7. Sprite picker + cursor-following pet
-
+## 7. [Done for the current sprite set] Sprite picker + cursor-following pet
 **Why:** you asked for a choice of sprites and for the pet to move toward the cursor.
 
 **Where:** `site/inner/src/components/os/DesktopPet.tsx`, sprites in `site/inner/public/assets/pet/`.
 
-**Current state:** 8 Hermes frames, wanders, and follows the cursor only within a 170px radius — which is why it looks like it ignores you.
+**Current state:** 8 Hermes-derived frames, wanders, follows the cursor within a wider viewport-relative radius, and now has live size presets from 48px (Tiny) through 160px (Showcase).
+
+Implemented: the pet now follows from a wider viewport-relative radius, can be turned off or selected as Hermes from Settings → Desktop, offers six persisted size presets, and applies changes live. Additional licensed sprite sets can be added later under the same picker without changing the behavior.
 
 **Do:**
 1. **Widen the follow.** Raise the radius to roughly a third of the viewport, and make it approach continuously rather than only when close. Keep an idle/nap state so it isn't glued to the pointer.
@@ -137,7 +149,7 @@ Sources: `atlas.md`, `nexus.md`, `daedulus.md`, `glassbox.md`, `phenosync.md`.
 
 ---
 
-## 8. Rebuild the Assistant as a real Claude-style UI
+## 8. [Done] Rebuild the Assistant as a real Claude-style UI
 
 **Why:** the current one is a plain log with a text box. You asked for the full interface.
 
@@ -155,6 +167,8 @@ Sources: `atlas.md`, `nexus.md`, `daedulus.md`, `glassbox.md`, `phenosync.md`.
 
 Grow the corpus in the same file — it is a list of `{ match: RegExp, reply: string }`. More entries make it feel less canned.
 
+Implemented: Claude-inspired dark workspace with seeded local conversations, persistent chat history, new-chat flow, safe Markdown headings/lists/tables/code rendering, copy and feedback controls, regenerate, stop/thinking states, local-corpus model indicator, character count, and contextual artifact previews. It remains fully local with no model, analytics, or networked chat.
+
 ---
 
 ## 9. Make downloads discoverable
@@ -163,9 +177,9 @@ Grow the corpus in the same file — it is a list of `{ match: RegExp, reply: st
 
 **Two separate things, both currently hidden:**
 
-**a. Wallpapers.** The ⤓ button on each tile only appears on hover, and there is no hover on touch. Fix in `site/inner/src/components/applications/StudioApps.css`: make `.wall-get` always visible at reduced opacity instead of `opacity: 0`. Add a line of copy above the grid saying the files can be saved.
+**a. Wallpapers — done.** The ⤓ button is always visible at reduced opacity and works on touch. The 88 wallpapers remain at their original, final quality; do not re-encode them.
 
-**b. Installing the app.** The install button sits in the desktop and most visitors never see it. Add a visible entry point — a Start-menu item, and a one-time prompt after a visitor has been active for a minute. Copy should say what installing gets them (own window, no browser chrome, offline shell).
+**b. Installing the app — done.** The desktop has a persistent Install button, a Start-menu entry, a one-time prompt after a visitor has been active for a minute, a native Chromium install flow, and Safari/iOS Add to Home Screen guidance. Copy explains the own window, browser-chrome-free shell, and offline benefits.
 
 ---
 
@@ -174,7 +188,7 @@ Grow the corpus in the same file — it is a list of `{ match: RegExp, reply: st
 From the earlier list. All are in `site/outer/static/manifest.webmanifest` and `site/outer/static/sw.js` unless noted.
 
 1. **File handlers** — register `.txt`/`.md`/`.json` via the manifest `file_handlers` field so double-clicking one on the real desktop opens it in the in-OS Notepad. Needs a `launchQueue.setConsumer` handler in the inner app to receive the file. Biggest "it's a real app" moment.
-2. **File System Access API** — let Explorer open and save real files through a picker (`showOpenFilePicker` / `showSaveFilePicker`). Chromium only; feature-detect and hide the buttons elsewhere.
+2. **File System Access API** — let the desktop's file tools open and save real files through a picker (`showOpenFilePicker` / `showSaveFilePicker`). Chromium only; feature-detect and hide the buttons elsewhere.
 3. **Share target** — manifest `share_target`, so a link shared from a phone opens in the in-OS browser.
 4. **Protocol handler** — manifest `protocol_handlers` for `web+adityaos://`, routed to open a named app.
 5. **App badge** — `navigator.setAppBadge(n)` with the count of locked achievements, cleared when all are unlocked.
@@ -183,7 +197,7 @@ From the earlier list. All are in `site/outer/static/manifest.webmanifest` and `
 
 ---
 
-## 11. Delete the Explorer app
+## 11. [Done] Delete the Explorer app
 
 **Why:** you asked for it. It duplicates the file system the Terminal already exposes.
 
@@ -191,7 +205,7 @@ From the earlier list. All are in `site/outer/static/manifest.webmanifest` and `
 
 Afterwards, check the achievement count in the tray still adds up and that `noteAppOpened`'s "open every application" achievement isn't now unreachable.
 
-> If you meant "delete the stale planning `.md` files" instead, those are `IMPLEMENTATION.md`, `TASK-LOG.md`, `ASSET-INVENTORY.md`, `PROJECT-BRIEF.md`, `FULL-LIVE-SITE-REVERSE-ENGINEERING-SPEC.md` — all superseded. Say which you meant.
+Implemented: Explorer was removed from the application registry, desktop shortcuts, and toolbar quick-launch path. The shared virtual filesystem remains because Terminal uses it; the source component and styles are kept in place for recoverability. README references now describe Terminal only.
 
 ---
 
@@ -209,6 +223,21 @@ Deliberately last: each is a day of work, not an hour.
 
 ---
 
+## 13. [Done] Performance pass — preserve full-quality media
+
+**Goal:** keep every feature and the original wallpaper quality while reducing the amount downloaded during startup. These changes improve initial load time; they do not necessarily reduce total Vercel deployment storage.
+
+1. **Lazy-load wallpapers only when selected.** Keep the full-quality files, but avoid requesting the complete wallpaper library when the picker opens. Load a selected wallpaper on demand.
+2. **Remove duplicate audio and other duplicate assets.** Audit the staged output and retain one canonical copy of each file, updating references where necessary.
+3. **Lazy-load Monaco, games, and DOS files.** Load the editor, game bundles, and DOS assets only when their applications open. This should improve startup speed while leaving those features available.
+4. **Lazy-load apps generally.** Split heavy applications into dynamic chunks so the initial desktop bundle contains only the shell and lightweight apps.
+
+**Expected result:** roughly **30–60% less initial loading**, depending on the visitor’s browser and which apps are opened. Do not re-encode or reduce the quality of the 88 wallpapers.
+
+Implemented: wallpaper videos use metadata preload and the picker thumbnails are lazy/async; the selected wallpaper remains the only full-quality loop requested. The staging script removes the duplicate inner `/desktop/audio` tree and keeps the outer shell's canonical `/audio` files. Desktop applications are React lazy chunks, with Monaco, DOS/js-dos, and game modules fetched only when opened. The production build now reports a 65.3 KB gzipped desktop entry bundle and 55.9 MiB staged desktop output; the 88 wallpaper files remain unchanged.
+
+---
+
 ## Standing constraints
 
 - **Never re-encode the 88 wallpapers.** They took hours and are final.
@@ -218,8 +247,6 @@ Deliberately last: each is a day of work, not an hour.
 
 ## Done, for context
 
-Papers section and three PDFs · project loops for atlas/nexus/daedalus · Settings rebuilt · Open WebUI deleted (66 MB) · native Assistant · presence relay live on Render · PWA manifest, screenshots, maskable icon, offline page · wallpaper downloads · desktop pet · achievements · analytics beacon removed.
+Papers section and three PDFs · project loops for atlas/nexus/daedalus · Settings rebuilt · Open WebUI deleted (66 MB) · native Assistant · presence relay live on Render · Render CORS allowlist updated · GitHub keepalive workflow committed · PWA manifest, screenshots, maskable icon, offline page · wallpaper downloads · desktop pet · achievements · analytics beacon removed · credits added · Vercel environment configured and redeployed.
 
-## One thing still needing your GitHub login
-
-Copy `presence/keepalive.github-workflow.yml` to `.github/workflows/presence-keepalive.yml` through the GitHub web UI. It cannot be pushed from the CLI — the token lacks `workflow` scope. Without it, Render idles the relay after ~15 minutes and the first visitor waits about a minute for cursors.
+The Render relay and GitHub keepalive workflow are now configured. The relay is live at `https://aditya-presence.onrender.com`; the public site is deployed at `https://adityabalaji.vercel.app`.

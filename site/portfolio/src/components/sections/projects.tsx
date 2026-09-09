@@ -157,6 +157,26 @@ const ProjectCard = ({ project }: { project: Project }) => {
           {/* Scrollable content */}
           <ScrollArea className="flex-1" type="always" data-lenis-prevent>
             <div className="px-8 py-8">
+              <div className="mb-8 overflow-hidden rounded-xl border border-border bg-muted/20">
+                {project.video ? (
+                  <video
+                    className="block max-h-[360px] w-full object-cover"
+                    src={project.video}
+                    poster={project.src}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                  />
+                ) : (
+                  <img className="block max-h-[360px] w-full object-cover" src={project.src} alt={`${project.title} preview`} />
+                )}
+                <p className="px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                  Preview of the live site
+                </p>
+              </div>
+
               {/* Tech stack */}
               <motion.div
                 initial={{ opacity: 0, y: 12 }}

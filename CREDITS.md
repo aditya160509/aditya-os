@@ -20,3 +20,12 @@ The personal site at `/portfolio` is a fork of [Naresh-Khatri/3d-portfolio](http
 
 - Repository: [Naresh-Khatri/3d-portfolio](https://github.com/Naresh-Khatri/3d-portfolio)
 - GitHub profile: [@Naresh-Khatri](https://github.com/Naresh-Khatri)
+
+## Hermes Agent / Nous Research
+
+The animated desktop companion follows the open Hermes Agent / Petdex sprite format and uses a small, locally vendored frame set extracted from Hermes' desktop sprite artwork. Thank you to Nous Research for making the companion system and sprite conventions openly available — it gave this playful desktop a much better little personality.
+
+- Official repository: [nousresearch/hermes-agent](https://github.com/nousresearch/hermes-agent)
+- Source artwork: [`apps/desktop/public/hermes-sprite.png`](https://github.com/nousresearch/hermes-agent/blob/main/apps/desktop/public/hermes-sprite.png)
+- Pet documentation: [Hermes pets / Petdex Mascots](https://github.com/nousresearch/hermes-agent/blob/main/website/docs/user-guide/features/pets.md)
+- Local license notice: `site/inner/public/assets/pet/LICENSE-hermes.txt`

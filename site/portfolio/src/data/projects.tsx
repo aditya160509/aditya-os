@@ -236,13 +236,12 @@ const projects: Project[] = [
             deflated Sharpe ratio, Double ML causal decomposition, meta-labelling
             and hierarchical risk parity.
           </p>
-          <TypographyH3 className="my-4 mt-8">Honest data</TypographyH3>
+          <TypographyH3 className="my-4 mt-8">Research workflow</TypographyH3>
           <p className="font-mono mb-2">
             Point-in-time fundamentals, IC-IR weighted composite scoring, full QMJ
-            factor construction and explicit survivorship-bias disclosure —
-            constrained entirely to free sources (yfinance, FRED, Ken French).
-            Core analytics were vectorised to remove the computational
-            bottlenecks that made the first version unusable.
+            factor construction and a reproducible data workflow built from
+            public market sources. Core analytics were vectorised so a research
+            question can move from data to a testable portfolio in one workspace.
           </p>
         </div>
       );
@@ -293,7 +292,8 @@ const projects: Project[] = [
     id: "glassbox",
     category: "Autonomous agent",
     title: "Glassbox SRE",
-    src: `${BASE_PATH}/glassbox/landing.png`,
+    src: `${VIDEO_PATH}/glassbox.jpg`,
+    video: `${VIDEO_PATH}/glassbox.mp4`,
     screenshots: ["landing.png"],
     skills: {
       frontend: [PROJECT_SKILLS.next, PROJECT_SKILLS.react, PROJECT_SKILLS.tailwind],

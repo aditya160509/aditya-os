@@ -1,15 +1,21 @@
 import React, { FormEvent, useEffect, useRef, useState } from 'react';
-import Editor, { loader } from '@monaco-editor/react';
 import Window from '../os/Window';
 import Icon from '../general/Icon';
 import { playUiSound } from '../../utils/sound';
 import { FS_ROOT, FSNode, fsJoin, fsResolve, openApp } from '../../utils/filesystem';
 import { unlock } from '../../utils/achievements';
+import { PET_SIZE_OPTIONS, clampPetSize, DEFAULT_PET_SIZE } from '../../utils/pet';
 import { announceWallpaper, BUILTIN_COUNT, builtinId, builtinSrc, builtinThumb, clearWallpaper, loadWallpaper, saveBuiltin, saveColor, saveWallpaper, Wallpaper } from '../../utils/wallpaper';
 
-loader.config({ paths: { vs: 'monaco/vs' } });
-
 type Props = WindowAppProps;
+
+// Monaco is a separate chunk. Its language workers are still served from the
+// local /desktop/monaco folder, but the editor is not downloaded at boot.
+const LazyEditor = React.lazy(async () => {
+    const module = await import('@monaco-editor/react');
+    module.loader.config({ paths: { vs: 'monaco/vs' } });
+    return { default: module.default };
+});
 
 const links = {
     github: 'https://github.com/aditya160509',
@@ -84,7 +90,72 @@ export const PortfolioApp: React.FC<Props> = (props) => (
  * interaction feels real. Open WebUI used to live here as a 66 MB vendored
  * build; this replaces it at a fraction of the weight.
  */
-type Turn = { role: 'user' | 'assistant'; text: string };
+type Turn = {
+    id: string;
+    role: 'user' | 'assistant';
+    text: string;
+    feedback?: 'up' | 'down';
+};
+
+type AssistantChat = {
+    id: string;
+    title: string;
+    turns: Turn[];
+};
+
+type AssistantArtifact = {
+    title: string;
+    language: string;
+    body: string;
+};
+
+const turn = (role: Turn['role'], text: string, id: string): Turn => ({ id, role, text });
+
+const SEED_CHATS: AssistantChat[] = [
+    {
+        id: 'research-seed',
+        title: 'The research papers',
+        turns: [
+            turn('user', 'What research have you published?', 'seed-research-user'),
+            turn('assistant', '## Three papers\n\n- **Silence Before the Break** — an attention-density threshold (γ* = 1.5625) above which 23 equity markets start following a shared narrative.\n- **When Realized Outcomes Outweigh Predictive Signals** — 100,801 Fantasy Premier League player-gameweeks on what crowds hold versus what predicts better.\n- **Asymmetric phenological advance** — blueberry flowering has advanced 5.03 days a year while its pollinator has not moved.\n\nOpen the Portfolio app and choose **Research** for the abstracts and PDF links.', 'seed-research-assistant'),
+        ],
+    },
+    {
+        id: 'desktop-seed',
+        title: 'How the desktop works',
+        turns: [
+            turn('user', 'How was this desktop built?', 'seed-desktop-user'),
+            turn('assistant', 'The outer shell is **Three.js + webpack**: it renders the CRT, the room and the monitor. The inner desktop is a React app painted into the screen, so the windows and games are real DOM.\n\n```text\nThree.js room\n  └─ CRT monitor\n      └─ React desktop iframe\n          ├─ local apps\n          └─ vendored games\n```\n\nNothing typed into the assistant leaves the browser.', 'seed-desktop-assistant'),
+        ],
+    },
+    {
+        id: 'blank-seed',
+        title: 'A new conversation',
+        turns: [],
+    },
+];
+
+const ASSISTANT_STORAGE = 'aditya-assistant-chats';
+const newId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+const loadChats = (): AssistantChat[] => {
+    try {
+        const raw = JSON.parse(localStorage.getItem(ASSISTANT_STORAGE) || 'null');
+        if (!Array.isArray(raw) || !raw.length) return SEED_CHATS;
+        return raw.map((chat: any, chatIndex: number) => ({
+            id: String(chat.id || `chat-${chatIndex}`),
+            title: String(chat.title || 'New conversation'),
+            turns: Array.isArray(chat.turns) ? chat.turns.map((item: any, turnIndex: number) => ({
+                id: String(item.id || `turn-${chatIndex}-${turnIndex}`),
+                role: item.role === 'user' ? 'user' : 'assistant',
+                text: String(item.text || ''),
+                ...(item.feedback === 'up' || item.feedback === 'down' ? { feedback: item.feedback } : {}),
+            })) : [],
+        }));
+    } catch {
+        return SEED_CHATS;
+    }
+};
 
 const CANNED: { match: RegExp; reply: string }[] = [
     {
@@ -141,30 +212,174 @@ const replyFor = (q: string) =>
     CANNED.find((c) => c.match.test(q))?.reply ??
     FALLBACK[Math.floor(Math.random() * FALLBACK.length)];
 
+const artifactFor = (q: string): AssistantArtifact | null => {
+    if (/paper|research|quant|market|attention|phenosync|pollinat/i.test(q)) {
+        return {
+            title: 'research.ts',
+            language: 'typescript',
+            body: `// GASI — Global Attention Saturation Index.\nexport const gammaStar = 1.5625;\n\nexport const silenceSignature = (\n    attention: number[],\n    volatility: number[],\n) => attention.map((value, i) =>\n    value > gammaStar ? volatility[i] * -1 : volatility[i]\n);`,
+        };
+    }
+    if (/build|made|stack|three|webgl|app/i.test(q)) {
+        return {
+            title: 'architecture.txt',
+            language: 'text',
+            body: `THREE.JS ROOM\n  └── CRT MONITOR\n      └── REACT DESKTOP\n          ├── native apps\n          ├── vendored games\n          └── local storage\n\nNo model. No analytics. No networked chat.`,
+        };
+    }
+    if (/game|doom|chess|tetris|solitaire|mine/i.test(q)) {
+        return {
+            title: 'games.md',
+            language: 'markdown',
+            body: `| App | Engine |\n| --- | --- |\n| Doom | js-dos + DOSBox |\n| Chess | chess.js + Chessground |\n| Tetris | Basic HTML Games |\n| Minesweeper | vendored React app |`,
+        };
+    }
+    return null;
+};
+
+const inlineMarkdown = (value: string): React.ReactNode[] => {
+    const nodes: React.ReactNode[] = [];
+    const tokenPattern = /(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*)/g;
+    let cursor = 0;
+    let match: RegExpExecArray | null;
+    while ((match = tokenPattern.exec(value))) {
+        if (match.index > cursor) nodes.push(value.slice(cursor, match.index));
+        const token = match[0];
+        if (token.indexOf('**') === 0) nodes.push(<strong key={`strong-${match.index}`}>{token.slice(2, -2)}</strong>);
+        else if (token[0] === '`') nodes.push(<code key={`code-${match.index}`}>{token.slice(1, -1)}</code>);
+        else nodes.push(<em key={`em-${match.index}`}>{token.slice(1, -1)}</em>);
+        cursor = match.index + token.length;
+    }
+    if (cursor < value.length) nodes.push(value.slice(cursor));
+    return nodes;
+};
+
+const highlightCode = (line: string): React.ReactNode[] => {
+    const nodes: React.ReactNode[] = [];
+    const tokenPattern = /(\/\/.*|#.*|"(?:\\.|[^"])*"|'(?:\\.|[^'])*'|\b(?:const|let|var|export|return|if|else|from|import|function|interface|new|true|false|null)\b|\b\d+(?:\.\d+)?\b)/g;
+    let cursor = 0;
+    let match: RegExpExecArray | null;
+    while ((match = tokenPattern.exec(line))) {
+        if (match.index > cursor) nodes.push(line.slice(cursor, match.index));
+        const token = match[0];
+        const kind = token.indexOf('//') === 0 || token[0] === '#' ? 'comment'
+            : token[0] === '"' || token[0] === "'" ? 'string'
+                : /^\d/.test(token) ? 'number' : 'keyword';
+        nodes.push(<span className={`assistant-code-${kind}`} key={`token-${match.index}`}>{token}</span>);
+        cursor = match.index + token.length;
+    }
+    if (cursor < line.length) nodes.push(line.slice(cursor));
+    return nodes;
+};
+
+const splitTableRow = (line: string) => line.replace(/^\||\|$/g, '').split('|').map((cell) => cell.trim());
+
+/** A small, safe Markdown renderer for the local corpus (no innerHTML). */
+const renderAssistantMarkdown = (source: string): React.ReactNode[] => {
+    const lines = source.split('\n');
+    const blocks: React.ReactNode[] = [];
+    const blockStart = (line: string) => /^(#{1,3}\s|```|\s*[-*]\s+|\s*\d+\.\s+)/.test(line);
+    let i = 0;
+    while (i < lines.length) {
+        const line = lines[i];
+        if (!line.trim()) { i += 1; continue; }
+        if (line.indexOf('```') === 0) {
+            const language = line.slice(3).trim() || 'text';
+            const code: string[] = [];
+            i += 1;
+            while (i < lines.length && lines[i].indexOf('```') !== 0) { code.push(lines[i]); i += 1; }
+            if (i < lines.length) i += 1;
+            blocks.push(<pre className="assistant-code" key={`code-block-${i}`}><span className="assistant-code-lang">{language}</span><code>{code.map((codeLine, lineIndex) => <span className="assistant-code-line" key={lineIndex}>{highlightCode(codeLine)}{lineIndex < code.length - 1 ? '\n' : ''}</span>)}</code></pre>);
+            continue;
+        }
+        const heading = line.match(/^(#{1,3})\s+(.+)/);
+        if (heading) {
+            const Tag = heading[1].length === 1 ? 'h2' : heading[1].length === 2 ? 'h3' : 'h4';
+            blocks.push(<Tag key={`heading-${i}`}>{inlineMarkdown(heading[2])}</Tag>);
+            i += 1;
+            continue;
+        }
+        if (i + 1 < lines.length && line.indexOf('|') !== -1 && /^\s*\|?\s*:?-{2,}/.test(lines[i + 1])) {
+            const headers = splitTableRow(line);
+            const rows: string[][] = [];
+            i += 2;
+            while (i < lines.length && lines[i].indexOf('|') !== -1 && lines[i].trim()) { rows.push(splitTableRow(lines[i])); i += 1; }
+            blocks.push(
+                <div className="assistant-table-wrap" key={`table-${i}`}><table className="assistant-table"><thead><tr>{headers.map((cell, index) => <th key={index}>{inlineMarkdown(cell)}</th>)}</tr></thead><tbody>{rows.map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, cellIndex) => <td key={cellIndex}>{inlineMarkdown(cell)}</td>)}</tr>)}</tbody></table></div>,
+            );
+            continue;
+        }
+        const list = line.match(/^\s*([-*]|\d+\.)\s+(.+)/);
+        if (list) {
+            const ordered = /\d+\./.test(list[1]);
+            const items: string[] = [];
+            while (i < lines.length) {
+                const item = lines[i].match(/^\s*([-*]|\d+\.)\s+(.+)/);
+                if (!item || (/\d+\./.test(item[1]) !== ordered)) break;
+                items.push(item[2]); i += 1;
+            }
+            const List = ordered ? 'ol' : 'ul';
+            blocks.push(<List key={`list-${i}`}>{items.map((item, index) => <li key={index}>{inlineMarkdown(item)}</li>)}</List>);
+            continue;
+        }
+        const paragraph: string[] = [line];
+        i += 1;
+        while (i < lines.length && lines[i].trim() && !blockStart(lines[i])) { paragraph.push(lines[i]); i += 1; }
+        blocks.push(<p key={`paragraph-${i}`}>{inlineMarkdown(paragraph.join(' '))}</p>);
+    }
+    return blocks;
+};
+
 export const ClaudeApp: React.FC<Props> = (props) => {
-    const [turns, setTurns] = useState<Turn[]>([]);
+    const [chats, setChats] = useState<AssistantChat[]>(() => loadChats());
+    const [activeId, setActiveId] = useState(() => loadChats()[0]?.id || SEED_CHATS[0].id);
     const [draft, setDraft] = useState('');
     const [streaming, setStreaming] = useState(false);
+    const [artifact, setArtifact] = useState<AssistantArtifact | null>(null);
+    const [copied, setCopied] = useState<string | null>(null);
     const scroller = useRef<HTMLDivElement>(null);
     const timers = useRef<number[]>([]);
+    const activeChat = chats.find((chat) => chat.id === activeId) || chats[0] || SEED_CHATS[0];
+    const turns = activeChat.turns;
+
+    useEffect(() => {
+        try { localStorage.setItem(ASSISTANT_STORAGE, JSON.stringify(chats)); } catch { /* private mode */ }
+    }, [chats]);
 
     // Drop any in-flight stream when the window closes, so a half-typed reply
     // cannot land on an unmounted component.
-    useEffect(() => () => { timers.current.forEach(clearTimeout); }, []);
+    useEffect(() => () => { timers.current.forEach(window.clearTimeout); }, []);
 
     useEffect(() => {
         const el = scroller.current;
         if (el) el.scrollTop = el.scrollHeight;
-    }, [turns, streaming]);
+    }, [activeId, turns.length, streaming]);
 
-    const ask = (question: string) => {
+    const stop = () => {
+        timers.current.forEach(window.clearTimeout);
+        timers.current = [];
+        setStreaming(false);
+    };
+
+    const beginReply = (question: string, replaceLastAssistant = false) => {
         const q = question.trim();
         if (!q || streaming) return;
         setDraft('');
-        setTurns((t) => [...t, { role: 'user', text: q }, { role: 'assistant', text: '' }]);
+        const userTurn = turn('user', q, newId('user'));
+        const assistantTurn = turn('assistant', '', newId('assistant'));
+        const current = activeChat.turns;
+        const nextTurns = replaceLastAssistant && current[current.length - 1]?.role === 'assistant'
+            ? [...current.slice(0, -1), assistantTurn]
+            : [...current, userTurn, assistantTurn];
+        setChats((all) => all.map((chat) => chat.id === activeChat.id ? {
+            ...chat,
+            title: chat.turns.length ? chat.title : q.slice(0, 34),
+            turns: nextTurns,
+        } : chat));
         setStreaming(true);
         playUiSound('key');
         unlock('curious');
+        setArtifact(artifactFor(q));
 
         const full = replyFor(q);
         // Stream in word chunks with a short lead-in, which reads closer to a
@@ -174,14 +389,46 @@ export const ClaudeApp: React.FC<Props> = (props) => {
         const step = () => {
             shown += 1 + Math.floor(Math.random() * 2);
             const text = words.slice(0, shown).join(' ');
-            setTurns((t) => [...t.slice(0, -1), { role: 'assistant', text }]);
+            setChats((all) => all.map((chat) => chat.id === activeChat.id ? {
+                ...chat,
+                turns: chat.turns.map((item) => item.id === assistantTurn.id ? { ...item, text } : item),
+            } : chat));
             if (shown < words.length) {
                 timers.current.push(window.setTimeout(step, 18 + Math.random() * 34));
             } else {
+                timers.current = [];
                 setStreaming(false);
             }
         };
         timers.current.push(window.setTimeout(step, 320));
+    };
+
+    const ask = (question: string) => beginReply(question);
+
+    const newChat = () => {
+        stop();
+        const id = newId('chat');
+        setChats((all) => [{ id, title: 'New conversation', turns: [] }, ...all]);
+        setActiveId(id);
+        setArtifact(null);
+    };
+
+    const regenerate = () => {
+        const previous = [...turns].reverse().find((item) => item.role === 'user');
+        if (previous) beginReply(previous.text, true);
+    };
+
+    const feedback = (id: string, value: 'up' | 'down') => {
+        setChats((all) => all.map((chat) => chat.id === activeChat.id ? {
+            ...chat,
+            turns: chat.turns.map((item) => item.id === id ? { ...item, feedback: item.feedback === value ? undefined : value } : item),
+        } : chat));
+    };
+
+    const copy = async (item: Turn) => {
+        try { await navigator.clipboard?.writeText(item.text); } catch { /* clipboard permission denied */ }
+        setCopied(item.id);
+        window.setTimeout(() => setCopied((current) => current === item.id ? null : current), 1200);
     };
 
     return (
@@ -191,19 +438,37 @@ export const ClaudeApp: React.FC<Props> = (props) => {
             icon="claude"
             className="assistant-app"
             status="runs entirely in your browser · no model, no network"
-            width={860}
-            height={640}
+            width={1080}
+            height={700}
             top={10}
             left={24}
         >
-            <div className="assistant">
-                <div className="assistant-log" ref={scroller}>
+            <div className="assistant-v2">
+                <aside className="assistant-sidebar">
+                    <div className="assistant-brand"><span>✳</span><b>Assistant</b></div>
+                    <button type="button" className="assistant-new-chat" onClick={newChat}>＋ <span>New chat</span></button>
+                    <div className="assistant-sidebar-label">Recent</div>
+                    <div className="assistant-chat-list">
+                        {chats.map((chat) => (
+                            <button key={chat.id} type="button" className={`assistant-chat${chat.id === activeChat.id ? ' active' : ''}`} onClick={() => { stop(); setActiveId(chat.id); setArtifact(null); }}>
+                                <span className="assistant-chat-glyph">◦</span><span>{chat.title}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <div className="assistant-local-note"><span className="assistant-local-dot" /><span className="assistant-local-copy">Local workspace<small>Nothing leaves this device</small></span></div>
+                </aside>
+                <main className="assistant-main">
+                    <header className="assistant-header">
+                        <div><b>{activeChat.title}</b><small>Assistant · local corpus</small></div>
+                        <button type="button" title="Local-only assistant">⌘ Local</button>
+                    </header>
+                    <div className="assistant-log" ref={scroller}>
                     {turns.length === 0 && (
                         <div className="assistant-intro">
-                            <h2>Ask about the work</h2>
+                            <div className="assistant-intro-mark">✳</div>
+                            <h2>What can I help with?</h2>
                             <p>
-                                No model sits behind this — replies come from a local corpus and
-                                nothing you type leaves the page.
+                                Ask about the research, projects, apps, or the way this desktop was built.
                             </p>
                             <div className="assistant-chips">
                                 {SUGGESTIONS.map((s) => (
@@ -213,33 +478,52 @@ export const ClaudeApp: React.FC<Props> = (props) => {
                         </div>
                     )}
                     {turns.map((t, i) => (
-                        <div key={i} className={`assistant-turn is-${t.role}`}>
-                            <div className="assistant-who">{t.role === 'user' ? 'You' : 'Assistant'}</div>
-                            <div className="assistant-text">
-                                {t.text.split('\n').map((line, j) => (
-                                    <p key={j} dangerouslySetInnerHTML={{
-                                        __html: line.replace(
-                                            /\*\*(.+?)\*\*/g, '<strong>$1</strong>',
-                                        ).replace(/`(.+?)`/g, '<code>$1</code>'),
-                                    }} />
-                                ))}
-                                {streaming && i === turns.length - 1 && <span className="assistant-caret" />}
+                        <article key={t.id} className={`assistant-message is-${t.role}`}>
+                            <div className={`assistant-avatar assistant-avatar-${t.role}`}>{t.role === 'user' ? 'AB' : '✳'}</div>
+                            <div className="assistant-message-body">
+                                <div className="assistant-message-meta"><b>{t.role === 'user' ? 'You' : 'Assistant'}</b><span>just now</span></div>
+                                <div className="assistant-text">
+                                    {t.text ? renderAssistantMarkdown(t.text) : streaming ? <div className="assistant-thinking"><span /> <span /> <span /> <em>Thinking</em></div> : <span className="assistant-stopped">Response stopped.</span>}
+                                    {streaming && i === turns.length - 1 && t.role === 'assistant' && t.text && <span className="assistant-caret" />}
+                                </div>
+                                {t.role === 'assistant' && t.text && !streaming && (
+                                    <div className="assistant-message-actions">
+                                        <button type="button" title="Copy response" onClick={() => copy(t)}>{copied === t.id ? 'Copied' : 'Copy'}</button>
+                                        <button type="button" title="Helpful" className={t.feedback === 'up' ? 'selected' : ''} onClick={() => feedback(t.id, 'up')}>↑</button>
+                                        <button type="button" title="Not helpful" className={t.feedback === 'down' ? 'selected' : ''} onClick={() => feedback(t.id, 'down')}>↓</button>
+                                        {i === turns.length - 1 && <button type="button" title="Regenerate response" onClick={regenerate}>↻</button>}
+                                    </div>
+                                )}
                             </div>
-                        </div>
+                        </article>
                     ))}
-                </div>
-                <form
-                    className="assistant-composer"
-                    onSubmit={(e: FormEvent) => { e.preventDefault(); ask(draft); }}
-                >
-                    <input
-                        value={draft}
-                        onChange={(e) => setDraft(e.target.value)}
-                        placeholder="Ask about the research, the projects, or this desktop…"
-                        aria-label="Message the assistant"
-                    />
-                    <button type="submit" disabled={!draft.trim() || streaming}>Send</button>
-                </form>
+                    </div>
+                    <form className="assistant-composer" onSubmit={(e: FormEvent) => { e.preventDefault(); ask(draft); }}>
+                        <div className="assistant-composer-row">
+                            <button type="button" className="assistant-attach" title="Attachments stay local">＋</button>
+                            <textarea
+                                value={draft}
+                                rows={1}
+                                maxLength={4000}
+                                onChange={(e) => setDraft(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ask(draft); } }}
+                                placeholder="Message the local assistant…"
+                                aria-label="Message the assistant"
+                            />
+                            {streaming ? <button type="button" className="assistant-stop" onClick={stop}>Stop</button> : <button type="submit" className="assistant-send" disabled={!draft.trim()}>↑</button>}
+                        </div>
+                        <div className="assistant-composer-meta"><span>Shift + Enter for a new line</span><span>Local corpus · {draft.length}/4000</span></div>
+                    </form>
+                    <div className="assistant-disclaimer">The local corpus can be wrong or incomplete. Nothing is sent to a model.</div>
+                </main>
+                {artifact && (
+                    <aside className="assistant-artifact">
+                        <div className="assistant-artifact-header"><span>Artifact</span><button type="button" title="Close artifact" onClick={() => setArtifact(null)}>×</button></div>
+                        <div className="assistant-artifact-file"><span>◈</span><b>{artifact.title}</b><small>{artifact.language}</small></div>
+                        <pre><code>{artifact.body}</code></pre>
+                        <small className="assistant-artifact-note">Generated from the local workspace corpus</small>
+                    </aside>
+                )}
             </div>
         </ShellWindow>
     );
@@ -285,11 +569,11 @@ type SpotifyTrack = {
 };
 
 const SPOTIFY_TRACKS: SpotifyTrack[] = [
-    { id: 'mohabbat', title: 'Mujhse Mohabbat Ka Izhaar Karta', artist: 'Satrang Music Official', album: 'Radio rotation · 2025', duration: '4:58', url: 'audio/radio/1.mp3', art: 'linear-gradient(140deg, #a56d4e, #e8c596 45%, #30343d)', image: '/desktop/assets/radio-saloon/cover.jpg' },
-    { id: 'night-build', title: 'Night Build', artist: 'Aditya FM', album: 'After hours', duration: '5:42', url: 'audio/radio/2.mp3', art: 'linear-gradient(140deg, #132c4b, #6d9ab5 45%, #e0b16c)' },
-    { id: 'deep-work', title: 'Deep Work', artist: 'Aditya FM', album: 'Focus desk', duration: '4:36', url: 'audio/radio/3.mp3', art: 'linear-gradient(140deg, #34221d, #b15b35 48%, #efcf8f)' },
-    { id: 'soft-signal', title: 'Soft Signal', artist: 'Open Frequency', album: 'Late Night Code', duration: '3:28', url: 'audio/radio/2.mp3', art: 'linear-gradient(140deg, #22354b, #9a8fc0 52%, #f0b9b2)' },
-    { id: 'slow-morning', title: 'Slow Morning', artist: 'Aditya FM', album: 'Daily mix', duration: '4:12', url: 'audio/radio/1.mp3', art: 'linear-gradient(140deg, #42513d, #cfb873 58%, #f5e3b5)' },
+    { id: 'mohabbat', title: 'Mujhse Mohabbat Ka Izhaar Karta', artist: 'Satrang Music Official', album: 'Radio rotation · 2025', duration: '4:58', url: '/audio/radio/1.mp3', art: 'linear-gradient(140deg, #a56d4e, #e8c596 45%, #30343d)', image: '/desktop/assets/radio-saloon/cover.jpg' },
+    { id: 'night-build', title: 'Night Build', artist: 'Aditya FM', album: 'After hours', duration: '5:42', url: '/audio/radio/2.mp3', art: 'linear-gradient(140deg, #132c4b, #6d9ab5 45%, #e0b16c)' },
+    { id: 'deep-work', title: 'Deep Work', artist: 'Aditya FM', album: 'Focus desk', duration: '4:36', url: '/audio/radio/3.mp3', art: 'linear-gradient(140deg, #34221d, #b15b35 48%, #efcf8f)' },
+    { id: 'soft-signal', title: 'Soft Signal', artist: 'Open Frequency', album: 'Late Night Code', duration: '3:28', url: '/audio/radio/2.mp3', art: 'linear-gradient(140deg, #22354b, #9a8fc0 52%, #f0b9b2)' },
+    { id: 'slow-morning', title: 'Slow Morning', artist: 'Aditya FM', album: 'Daily mix', duration: '4:12', url: '/audio/radio/1.mp3', art: 'linear-gradient(140deg, #42513d, #cfb873 58%, #f5e3b5)' },
 ];
 
 const SPOTIFY_PLAYLISTS = [
@@ -613,7 +897,7 @@ export const TerminalApp: React.FC<Props> = (props) => {
                 break;
             }
             case 'about': out.push('Aditya Balaji', 'Builder · Researcher · Student', 'Mumbai, India'); break;
-            case 'projects': out.push('grade-central  → grade-central.vercel.app', 'phenosync       → github.com/aditya160509/phenosync', 'study-notes     → github.com/aditya160509/study-notes', 'nexus / atlas   → C:\\ADITYA\\Projects (Explorer)'); break;
+            case 'projects': out.push('grade-central  → grade-central.vercel.app', 'phenosync       → github.com/aditya160509/phenosync', 'study-notes     → github.com/aditya160509/study-notes', 'nexus / atlas   → C:\\ADITYA\\Projects (local files)'); break;
             case 'links': out.push('github   github.com/aditya160509', 'linkedin linkedin.com/in/aditya-balaji-50375237a'); break;
             case 'contact': out.push('aditya160509@gmail.com'); break;
             case 'market': out.push('Paper terminal live in the Markets app. (open Markets)'); if (args[0] === 'open') openApp('trading'); break;
@@ -740,22 +1024,24 @@ export const DeveloperApp: React.FC<Props> = (props) => {
                     ))}
                 </header>
                 <div className="code-editor">
-                    <Editor
-                        height="100%"
-                        theme="vs-dark"
-                        path={file.name}
-                        language={file.lang}
-                        value={value}
-                        onChange={onChange}
-                        options={{
-                            fontSize: 13,
-                            minimap: { enabled: true },
-                            scrollBeyondLastLine: false,
-                            smoothScrolling: true,
-                            renderLineHighlight: 'all',
-                            automaticLayout: true,
-                        }}
-                    />
+                    <React.Suspense fallback={<div className="editor-loading">Loading Monaco editor…</div>}>
+                        <LazyEditor
+                            height="100%"
+                            theme="vs-dark"
+                            path={file.name}
+                            language={file.lang}
+                            value={value}
+                            onChange={onChange}
+                            options={{
+                                fontSize: 13,
+                                minimap: { enabled: true },
+                                scrollBeyondLastLine: false,
+                                smoothScrolling: true,
+                                renderLineHighlight: 'all',
+                                automaticLayout: true,
+                            }}
+                        />
+                    </React.Suspense>
                 </div>
                 <footer>
                     <span>⑂ main{dirty[file.name] ? '*' : ''}</span>
@@ -780,6 +1066,8 @@ type Prefs = {
     volume: number;
     skipBoot: boolean;
     iconSize: number;
+    pet: string;
+    petSize: number;
 };
 
 const loadPrefs = (): Prefs => ({
@@ -792,6 +1080,8 @@ const loadPrefs = (): Prefs => ({
     volume: Number(localStorage.getItem('volume') || '0.6'),
     skipBoot: localStorage.getItem('skipBoot') === '1',
     iconSize: Number(localStorage.getItem('iconSize') || '88'),
+    pet: localStorage.getItem('aditya-pet') || 'hermes',
+    petSize: clampPetSize(Number(localStorage.getItem('aditya-pet-size') || DEFAULT_PET_SIZE)),
 });
 
 /**
@@ -822,6 +1112,7 @@ const INDEX: { label: string; tab: Tab; keywords: string }[] = [
     { label: 'Skip boot animation', tab: 'Personalisation', keywords: 'startup fast boot 3d' },
     { label: 'Language', tab: 'Personalisation', keywords: 'locale region translation' },
     { label: 'Icon size', tab: 'Desktop', keywords: 'shortcut large small scale' },
+    { label: 'Desktop pet size', tab: 'Desktop', keywords: 'pet sprite companion tiny small large huge scale' },
     { label: '24-hour clock', tab: 'Desktop', keywords: 'time format taskbar toolbar' },
     { label: 'Master sound', tab: 'Sound', keywords: 'audio mute ui clicks' },
     { label: 'Volume', tab: 'Sound', keywords: 'audio loudness level' },
@@ -888,6 +1179,8 @@ export const SettingsApp: React.FC<Props> = (props) => {
         localStorage.setItem('volume', String(next.volume));
         localStorage.setItem('skipBoot', next.skipBoot ? '1' : '0');
         localStorage.setItem('iconSize', String(next.iconSize));
+        localStorage.setItem('aditya-pet', next.pet);
+        localStorage.setItem('aditya-pet-size', String(clampPetSize(next.petSize)));
         window.dispatchEvent(new CustomEvent('aditya-wallpaper', { detail: { speed: next.speed, dim: next.dim } }));
         window.dispatchEvent(new CustomEvent('aditya-prefs', { detail: next }));
     };
@@ -1116,6 +1409,28 @@ export const SettingsApp: React.FC<Props> = (props) => {
                                 <Row title="Icon size" hint="Applies to every desktop shortcut">
                                     <Slider value={p.iconSize} min={64} max={112} step={2}
                                         onChange={(n) => set('iconSize', n)} format={(n) => `${n}px`} />
+                                </Row>
+                            </section>
+                            <section>
+                                <h3>Desktop pet</h3>
+                                <p className="w95-note">Choose a Hermes/Petdex companion and its footprint. Your choice is saved in this browser.</p>
+                                <div className="wall-actions">
+                                    <button className={p.pet === 'hermes' ? 'wall-primary' : ''} onClick={() => set('pet', 'hermes')}>Hermes</button>
+                                    <button className={p.pet === 'none' ? 'wall-primary' : ''} onClick={() => set('pet', 'none')}>None</button>
+                                </div>
+                                <Row title="Sprite size" hint="The same crisp sprite, rendered from tiny to showcase scale">
+                                    <div className="wall-actions pet-size-actions">
+                                        {PET_SIZE_OPTIONS.map((option) => (
+                                            <button
+                                                key={option.value}
+                                                className={p.petSize === option.value ? 'wall-primary' : ''}
+                                                onClick={() => set('petSize', option.value)}
+                                                aria-pressed={p.petSize === option.value}
+                                            >
+                                                {option.label} · {option.value}px
+                                            </button>
+                                        ))}
+                                    </div>
                                 </Row>
                             </section>
                             <section>

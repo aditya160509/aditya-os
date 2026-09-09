@@ -1,22 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Colors from '../../constants/colors';
-import Doom from '../applications/Doom';
-import OregonTrail from '../applications/OregonTrail';
 import ShutdownSequence from './ShutdownSequence';
 // import ThisComputer from '../applications/ThisComputer';
-import Henordle from '../applications/Henordle';
 import Toolbar from './Toolbar';
 import DesktopShortcut, { DesktopShortcutProps } from './DesktopShortcut';
-import { Game2048App, MinesweeperApp, PongApp, SolitaireApp, TetrisApp } from '../applications/VendorGame';
-import Notepad from '../applications/Notepad';
-import Paint from '../applications/Paint';
-import Radio from '../applications/Radio';
-import Calculator from '../applications/Calculator';
-import Explorer from '../applications/Explorer';
-import Snake from '../applications/Snake';
-import ChessGame from '../applications/ChessGame';
-import ThisComputer from '../applications/ThisComputer';
-import Scrabble from '../applications/Scrabble';
 import { IconName } from '../../assets/icons';
 import { playUiSound } from '../../utils/sound';
 import { loadWallpaper, Wallpaper } from '../../utils/wallpaper';
@@ -24,11 +11,36 @@ import { noteAppOpened, unlock } from '../../utils/achievements';
 import AchievementToast from './AchievementToast';
 import DesktopPet from './DesktopPet';
 import InstallButton from './InstallButton';
-import Digger from '../applications/Digger';
-import {
-    ChromeApp, ClaudeApp, DeveloperApp, PortfolioApp,
-    SettingsApp, SpotifyApp, TerminalApp, TradingApp,
-} from '../applications/StudioApps';
+
+// Keep the desktop shell small. Heavy applications are separate chunks and
+// are fetched only when a visitor opens them; their public media is already
+// requested lazily by the app itself.
+const lazyDefault = (load: () => Promise<{ default: React.ComponentType<any> }>) => React.lazy(load);
+const Doom = lazyDefault(() => import('../applications/Doom'));
+const OregonTrail = lazyDefault(() => import('../applications/OregonTrail'));
+const Henordle = lazyDefault(() => import('../applications/Henordle'));
+const Notepad = lazyDefault(() => import('../applications/Notepad'));
+const Paint = lazyDefault(() => import('../applications/Paint'));
+const Radio = lazyDefault(() => import('../applications/Radio'));
+const Calculator = lazyDefault(() => import('../applications/Calculator'));
+const Snake = lazyDefault(() => import('../applications/Snake'));
+const ChessGame = lazyDefault(() => import('../applications/ChessGame'));
+const ThisComputer = lazyDefault(() => import('../applications/ThisComputer'));
+const Scrabble = lazyDefault(() => import('../applications/Scrabble'));
+const Digger = lazyDefault(() => import('../applications/Digger'));
+const MinesweeperApp = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.MinesweeperApp })));
+const SolitaireApp = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.SolitaireApp })));
+const TetrisApp = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.TetrisApp })));
+const PongApp = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.PongApp })));
+const Game2048App = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.Game2048App })));
+const PortfolioApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.PortfolioApp })));
+const ClaudeApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.ClaudeApp })));
+const TradingApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.TradingApp })));
+const SpotifyApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.SpotifyApp })));
+const ChromeApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.ChromeApp })));
+const TerminalApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.TerminalApp })));
+const DeveloperApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.DeveloperApp })));
+const SettingsApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.SettingsApp })));
 
 export interface DesktopProps {}
 
@@ -39,7 +51,7 @@ const APPLICATIONS: {
         key: string;
         name: string;
         shortcutIcon: IconName;
-        component: React.FC<ExtendedWindowAppProps<any>>;
+    component: React.ComponentType<ExtendedWindowAppProps<any>>;
     };
 } = {
     // computer: {
@@ -140,12 +152,6 @@ const APPLICATIONS: {
         name: 'Time Machine',
         shortcutIcon: 'computerBig',
         component: ThisComputer,
-    },
-    explorer: {
-        key: 'explorer',
-        name: 'Explorer',
-        shortcutIcon: 'myComputer',
-        component: Explorer,
     },
     snake: { key: 'snake', name: 'Snake', shortcutIcon: 'snake', component: Snake },
     game2048: { key: 'game2048', name: '2048', shortcutIcon: 'game2048', component: Game2048App },
@@ -383,13 +389,13 @@ const Desktop: React.FC<DesktopProps> = (props) => {
             {wallpaper?.kind === 'image' && wallpaperUrl ? (
                 <div className="desktop-wallpaper-image" style={{ backgroundImage: `url(${wallpaperUrl})` }} />
             ) : wallpaper?.kind === 'video' && wallpaperUrl ? (
-                <video ref={videoRef} className="desktop-wallpaper-video" src={wallpaperUrl} autoPlay muted loop playsInline />
+                <video ref={videoRef} className="desktop-wallpaper-video" src={wallpaperUrl} autoPlay muted loop playsInline preload="metadata" />
             ) : wallpaper?.kind === 'builtin' && wallpaper.src ? (
-                <video ref={videoRef} className="desktop-wallpaper-video" src={wallpaper.src} autoPlay muted loop playsInline preload="auto" disablePictureInPicture />
+                <video ref={videoRef} className="desktop-wallpaper-video" src={wallpaper.src} autoPlay muted loop playsInline preload="metadata" disablePictureInPicture />
             ) : wallpaper?.kind === 'color' ? (
                 <div className="desktop-wallpaper-image" style={{ background: wallpaper.color }} />
             ) : (
-                <video ref={videoRef} className="desktop-wallpaper-video" autoPlay muted loop playsInline preload="auto">
+                <video ref={videoRef} className="desktop-wallpaper-video" autoPlay muted loop playsInline preload="metadata">
                     <source src="assets/wallspace-one-piece.mp4" type="video/mp4" />
                 </video>
             )}
@@ -410,11 +416,13 @@ const Desktop: React.FC<DesktopProps> = (props) => {
                             windows[key].minimized && styles.minimized
                         )}
                     >
-                        {React.cloneElement(element, {
-                            key,
-                            onInteract: () => onWindowInteract(key),
-                            onClose: () => removeWindow(key),
-                        })}
+                        <React.Suspense fallback={<div className="app-loading">Opening {windows[key].name}…</div>}>
+                            {React.cloneElement(element, {
+                                key,
+                                onInteract: () => onWindowInteract(key),
+                                onClose: () => removeWindow(key),
+                            })}
+                        </React.Suspense>
                     </div>
                 );
             })}

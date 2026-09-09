@@ -14,17 +14,17 @@ const TRACKS: Track[] = [
     {
         name: 'Mujhse Mohabbat Ka Izhaar Karta',
         artist: 'Satrang Music Official',
-        url: 'audio/radio/1.mp3',
+        url: '/audio/radio/1.mp3',
     },
     {
         name: 'Night Build',
         artist: 'Aditya FM',
-        url: 'audio/radio/2.mp3',
+        url: '/audio/radio/2.mp3',
     },
     {
         name: 'Deep Work',
         artist: 'Aditya FM',
-        url: 'audio/radio/3.mp3',
+        url: '/audio/radio/3.mp3',
     },
 ];
 

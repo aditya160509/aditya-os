@@ -105,6 +105,20 @@ const Toolbar: React.FC<ToolbarProps> = ({
                         </div>
                         <div style={styles.startWindowContent}>
                             <div style={styles.startMenuSpace} />
+                            <div
+                                className="start-menu-option"
+                                style={styles.startMenuOption}
+                                onMouseDown={() => {
+                                    window.dispatchEvent(new CustomEvent('aditya-install-open'));
+                                    setStartWindowOpen(false);
+                                    lastClickInside.current = false;
+                                }}
+                            >
+                                <Icon style={styles.startMenuIcon} icon="computerSmall" />
+                                <p style={styles.startMenuText}>
+                                    <u>I</u>nstall AdityaOS
+                                </p>
+                            </div>
                             <div style={styles.startMenuLine} />
                             <div
                                 className="start-menu-option"
@@ -150,7 +164,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                     </div>
                     <div style={styles.toolbarTabsContainer}>
                         {[
-                            { key: 'explorer', icon: 'myComputer' as const },
+                            { key: 'computer', icon: 'computerBig' as const },
                             { key: 'chrome', icon: 'chrome' as const },
                             { key: 'trading', icon: 'trading' as const },
                         ].map((q) => (

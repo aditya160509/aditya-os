@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { unlock } from '../../utils/achievements';
+import { clampPetSize, DEFAULT_PET_SIZE } from '../../utils/pet';
 
 /**
  * The desktop pet — sprite frames from Hermes Agent (NousResearch/hermes-agent,
@@ -8,11 +9,12 @@ import { unlock } from '../../utils/achievements';
  */
 const FRAMES = 8;
 const SPEED = 46; // px per second
-const SIZE = 74;
 
 type Mode = 'idle' | 'walk' | 'follow';
 
 const DesktopPet: React.FC = () => {
+    const [enabled, setEnabled] = useState(() => localStorage.getItem('aditya-pet') !== 'none');
+    const [size, setSize] = useState(() => clampPetSize(Number(localStorage.getItem('aditya-pet-size') || DEFAULT_PET_SIZE)));
     const [pos, setPos] = useState({ x: 120, y: 260 });
     const [flip, setFlip] = useState(false);
     const [frame, setFrame] = useState(0);
@@ -26,7 +28,16 @@ const DesktopPet: React.FC = () => {
     useEffect(() => {
         const onMove = (e: MouseEvent) => { cursor.current = { x: e.clientX, y: e.clientY }; };
         window.addEventListener('mousemove', onMove);
-        return () => window.removeEventListener('mousemove', onMove);
+        const onPrefs = (e: Event) => {
+            const next = (e as CustomEvent).detail || {};
+            setEnabled(next.pet !== 'none');
+            if (typeof next.petSize === 'number') setSize(clampPetSize(next.petSize));
+        };
+        window.addEventListener('aditya-prefs', onPrefs);
+        return () => {
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('aditya-prefs', onPrefs);
+        };
     }, []);
 
     // Pick a new destination now and then; nap in between.
@@ -51,7 +62,8 @@ const DesktopPet: React.FC = () => {
             last.current = now;
 
             setPos((p) => {
-                const near = Math.hypot(cursor.current.x - p.x, cursor.current.y - p.y) < 170;
+                const followRadius = Math.max(260, Math.min(560, Math.max(window.innerWidth, window.innerHeight) * 0.34));
+                const near = Math.hypot(cursor.current.x - p.x, cursor.current.y - p.y) < followRadius;
                 const goal = near ? cursor.current : target.current;
                 if (near && mode !== 'follow') setMode('follow');
                 const dx = goal.x - p.x;
@@ -82,10 +94,12 @@ const DesktopPet: React.FC = () => {
         'I live in localStorage now',
     ];
 
+    if (!enabled) return null;
+
     return (
         <div
             className="desk-pet"
-            style={{ transform: `translate3d(${pos.x}px, ${pos.y}px, 0) scaleX(${flip ? -1 : 1})`, width: SIZE }}
+            style={{ transform: `translate3d(${pos.x}px, ${pos.y}px, 0) scaleX(${flip ? -1 : 1})`, width: size }}
             onClick={() => {
                 unlock('pet-friend');
                 setSays(LINES[Math.floor(Math.random() * LINES.length)]);
