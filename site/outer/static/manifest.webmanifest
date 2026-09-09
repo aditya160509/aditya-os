@@ -1,24 +1,49 @@
 {
   "id": "/",
-  "name": "AdityaOS — Aditya Balaji",
-  "short_name": "AdityaOS",
-  "description": "A 3D workstation you can actually use: the monitor runs a full desktop of working applications — markets, editor, research, games.",
+  "name": "Aditya Balaji \u2014 Portfolio",
+  "short_name": "Aditya Balaji",
+  "description": "A 3D workstation you can actually use: the monitor runs a full desktop of working applications \u2014 markets, editor, research, games.",
   "lang": "en",
   "dir": "ltr",
-  "categories": ["productivity", "developer", "portfolio"],
+  "categories": [
+    "productivity",
+    "developer",
+    "portfolio"
+  ],
   "start_url": "/desktop/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-  "launch_handler": { "client_mode": "focus-existing" },
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
   "orientation": "any",
   "theme_color": "#0e1116",
   "background_color": "#0e1116",
   "prefer_related_applications": false,
   "icons": [
-    { "src": "/images/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/images/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/images/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/images/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "screenshots": [
     {
@@ -42,21 +67,36 @@
       "short_name": "Portfolio",
       "description": "The personal site: projects, research and writing",
       "url": "/portfolio/",
-      "icons": [{ "src": "/images/android-chrome-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/images/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Research",
       "short_name": "Research",
       "description": "The three papers",
       "url": "/portfolio/#research",
-      "icons": [{ "src": "/images/android-chrome-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/images/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Desktop only",
       "short_name": "Desktop",
       "description": "Skip the 3D shell and go straight to the desktop",
       "url": "/desktop/",
-      "icons": [{ "src": "/images/android-chrome-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/images/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

@@ -29,11 +29,15 @@ const detect = (): Platform => {
 
 const STEPS: Record<Exclude<Platform, 'installed' | 'installable'>, { title: string; steps: string[] }> = {
     ios: {
-        title: 'iPhone or iPad — Safari',
+        title: 'iPhone or iPad',
+        // Safari never fires beforeinstallprompt — Apple does not allow a site
+        // to trigger installation — so this has to be spelled out step by step.
         steps: [
-            'Tap the Share button at the bottom of Safari.',
-            'Scroll down and choose "Add to Home Screen".',
-            'Tap Add. AdityaOS appears as an app icon.',
+            'Make sure you are in Safari. Chrome and Firefox on iPhone cannot add to the Home Screen.',
+            'Tap the Share button — the square with an arrow pointing up, in the bar at the bottom.',
+            'Scroll down the list of options until you see "Add to Home Screen", then tap it.',
+            'Tap "Add" at the top right.',
+            'Close Safari. The icon is now on your Home Screen and opens full screen, with no browser bar.',
         ],
     },
     firefox: {
@@ -91,6 +95,7 @@ const GetApp: React.FC<Props> = (props) => {
     };
 
     const guide = platform === 'installable' || platform === 'installed' ? null : STEPS[platform];
+    const isIos = platform === 'ios';
 
     return (
         <Window
@@ -128,9 +133,30 @@ const GetApp: React.FC<Props> = (props) => {
                         {outcome && <p className="getapp-outcome">{outcome}</p>}
                     </>
                 ) : (
-                    <section className="getapp-guide">
-                        <h2>{guide!.title}</h2>
+                    <section className={`getapp-guide${isIos ? ' is-ios' : ''}`}>
+                        <h2>
+                            {isIos && (
+                                <svg className="getapp-share" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                                    strokeLinejoin="round" aria-hidden>
+                                    <path d="M12 16V3" /><path d="m8 7 4-4 4 4" />
+                                    <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />
+                                </svg>
+                            )}
+                            {guide!.title}
+                        </h2>
+                        {isIos && (
+                            <p className="getapp-lead">
+                                iPhone will not show an install button — Apple does not let a website
+                                ask. You add it yourself, and it takes about five seconds:
+                            </p>
+                        )}
                         <ol>{guide!.steps.map((s) => <li key={s}>{s}</li>)}</ol>
+                        {isIos && (
+                            <p className="getapp-lead getapp-lead-end">
+                                Once it is on your Home Screen it behaves like any other app.
+                            </p>
+                        )}
                     </section>
                 )}
 

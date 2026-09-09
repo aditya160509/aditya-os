@@ -450,7 +450,7 @@ const projects: Project[] = [
       frontend: [PROJECT_SKILLS.ts, PROJECT_SKILLS.react, PROJECT_SKILLS.spline],
       backend: [PROJECT_SKILLS.node, PROJECT_SKILLS.docker],
     },
-    live: "https://aditya-os.vercel.app",
+    live: "https://adityabalajiportfolio.vercel.app",
     github: "https://github.com/aditya160509/aditya-os",
     get content() {
       return (

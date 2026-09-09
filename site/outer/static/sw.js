@@ -6,8 +6,8 @@
  * touches, capped so the cache cannot grow without limit. Media (video, models,
  * textures) is deliberately never cached — it streams with range requests.
  */
-const SHELL = 'adityaos-shell-v2';
-const RUNTIME = 'adityaos-runtime-v2';
+const SHELL = 'adityaos-shell-v3';
+const RUNTIME = 'adityaos-runtime-v3';
 const RUNTIME_MAX = 60;
 
 const SHELL_URLS = [

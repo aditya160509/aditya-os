@@ -14,3 +14,10 @@
 .getapp-guide ol,.getapp-facts ul{margin:0;padding-left:20px;color:#4b4740}
 .getapp-guide li,.getapp-facts li{margin:5px 0;font-size:12.5px}
 .getapp-facts b{color:#1a1a1a}
+
+.getapp-lead{margin:0 0 10px;color:#57534b;font-size:12.5px;line-height:1.55}
+.getapp-lead-end{margin:10px 0 0}
+.getapp-guide.is-ios{border-color:#7d94b8;background:#f4f7fb}
+.getapp-guide h2{display:flex;align-items:center;gap:7px}
+.getapp-share{width:17px;height:17px;flex:0 0 17px;color:#2450ad}
+.getapp-guide.is-ios li{margin:7px 0}

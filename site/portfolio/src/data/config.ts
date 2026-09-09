@@ -24,7 +24,7 @@ const config = {
   ],
   author: "Aditya Balaji",
   email: "aditya160509@gmail.com",
-  site: "https://aditya-os.vercel.app",
+  site: "https://adityabalajiportfolio.vercel.app",
 
   // for github stars button
   githubUsername: "aditya160509",
