@@ -1389,7 +1389,7 @@ export const SettingsApp: React.FC<Props> = (props) => {
                                     {Array.from({ length: BUILTIN_COUNT }, (_, i) => builtinId(i + 1)).map((id) => (
                                         <div key={id} className={`wall-cell${wall?.src?.includes(id) ? ' on' : ''}`}>
                                             <button title={`Use ${id}`} aria-label={`Use ${id}`} onClick={() => pickBuiltin(id)}>
-                                                <img src={builtinThumb(id)} alt="" loading="lazy" decoding="async" />
+                                                <img src={builtinThumb(id)} alt="" decoding="async" />
                                                 <span className="wall-number">{id.replace('wall-', '')}</span>
                                             </button>
                                             <a

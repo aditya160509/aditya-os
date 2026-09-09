@@ -3,6 +3,10 @@
 html,
 body {
   height: 100%;
+  /* Without this the page paints on the host's white, which shows through the
+     editor pane wherever a route's own background does not reach. */
+  background: var(--main-bg, #24292e);
+  color: var(--text-color, #efefef);
 }
 
 *,

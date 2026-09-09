@@ -16,6 +16,7 @@
 
 .editorContainer {
   width: 100%;
+  background: var(--main-bg);
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -31,6 +32,7 @@
 
 .content {
   padding: 2rem;
+  background: var(--main-bg);
   color: var(--text-color);
   font-family: 'JetBrains Mono', monospace;
   flex: 1;

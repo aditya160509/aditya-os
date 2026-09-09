@@ -1,0 +1,16 @@
+.getapp{width:100%;height:100%;overflow-y:auto;background:#eeece5;color:#111;font:13px/1.6 Tahoma,"Segoe UI",Arial,sans-serif;padding:22px 24px 26px;display:flex;flex-direction:column;gap:16px}
+.getapp-hero{display:flex;gap:16px;align-items:flex-start}
+.getapp-icon{width:58px;height:58px;flex:0 0 58px;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#3a5fb8,#1e356e);color:#fff;font:600 27px Georgia,serif;border:1px solid #16264f;box-shadow:inset 1px 1px 0 #ffffff4d}
+.getapp-hero h1{margin:0 0 5px;font-size:20px;font-weight:600;letter-spacing:-.01em}
+.getapp-hero p{margin:0;color:#57534b;font-size:12.5px}
+.getapp-cta{align-self:flex-start;background:linear-gradient(180deg,#4d7fe0,#2450ad);border:1px solid #16305f;box-shadow:inset 1px 1px 0 #ffffff55;color:#fff;font:600 14px inherit;padding:11px 26px;cursor:pointer}
+.getapp-cta:hover{background:linear-gradient(180deg,#5a8bea,#2b58b8)}
+.getapp-outcome{margin:0;color:#2450ad;font-size:12px}
+.getapp-done{background:#e7f2e4;border:1px solid #8fb187;padding:12px 14px}
+.getapp-done b{display:block;color:#2f6b25;font-size:13px}
+.getapp-done span{color:#4b6446;font-size:12px}
+.getapp-guide,.getapp-facts{background:#f7f6f2;border:1px solid #b7b3a9;box-shadow:inset 1px 1px 0 #fff;padding:14px 16px}
+.getapp-guide h2,.getapp-facts h2{margin:0 0 9px;font-size:13px;font-weight:600}
+.getapp-guide ol,.getapp-facts ul{margin:0;padding-left:20px;color:#4b4740}
+.getapp-guide li,.getapp-facts li{margin:5px 0;font-size:12.5px}
+.getapp-facts b{color:#1a1a1a}

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Colors from '../../constants/colors';
 import ShutdownSequence from './ShutdownSequence';
-// import ThisComputer from '../applications/ThisComputer';
+
 import Toolbar from './Toolbar';
 import DesktopShortcut, { DesktopShortcutProps } from './DesktopShortcut';
 import { IconName } from '../../assets/icons';
@@ -25,7 +25,7 @@ const Radio = lazyDefault(() => import('../applications/Radio'));
 const Calculator = lazyDefault(() => import('../applications/Calculator'));
 const Snake = lazyDefault(() => import('../applications/Snake'));
 const ChessGame = lazyDefault(() => import('../applications/ChessGame'));
-const ThisComputer = lazyDefault(() => import('../applications/ThisComputer'));
+const GetApp = lazyDefault(() => import('../applications/GetApp'));
 const Scrabble = lazyDefault(() => import('../applications/Scrabble'));
 const Digger = lazyDefault(() => import('../applications/Digger'));
 const MinesweeperApp = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.MinesweeperApp })));
@@ -58,7 +58,7 @@ const APPLICATIONS: {
     //     key: 'computer',
     //     name: 'This Computer',
     //     shortcutIcon: 'computerBig',
-    //     component: ThisComputer,
+
     // },
     portfolio: {
         key: 'portfolio',
@@ -149,9 +149,9 @@ const APPLICATIONS: {
     },
     computer: {
         key: 'computer',
-        name: 'Time Machine',
+        name: 'Get App',
         shortcutIcon: 'computerBig',
-        component: ThisComputer,
+        component: GetApp,
     },
     snake: { key: 'snake', name: 'Snake', shortcutIcon: 'snake', component: Snake },
     game2048: { key: 'game2048', name: '2048', shortcutIcon: 'game2048', component: Game2048App },
