@@ -28,7 +28,7 @@ const ShowcaseExplorer: React.FC<ShowcaseExplorerProps> = (props) => {
             closeWindow={props.onClose}
             onInteract={props.onInteract}
             minimizeWindow={props.onMinimize}
-            bottomLeftText={'AdityaOS · Original shell by Henry Heffernan'}
+            bottomLeftText={'AdityaOS · 3D shell adapted from an open reference scene'}
         >
             <Router>
                 <div className="site-page">

@@ -1,8 +1,10 @@
 import React, { FormEvent, useEffect, useRef, useState } from 'react';
 import Editor, { loader } from '@monaco-editor/react';
 import Window from '../os/Window';
+import Icon from '../general/Icon';
 import { playUiSound } from '../../utils/sound';
 import { FS_ROOT, FSNode, fsJoin, fsResolve, openApp } from '../../utils/filesystem';
+import { unlock } from '../../utils/achievements';
 import { announceWallpaper, BUILTIN_COUNT, builtinId, builtinThumb, clearWallpaper, loadWallpaper, saveBuiltin, saveColor, saveWallpaper, Wallpaper } from '../../utils/wallpaper';
 
 loader.config({ paths: { vs: 'monaco/vs' } });
@@ -45,33 +47,33 @@ const ShellWindow: React.FC<Props & {
     </Window>
 );
 
+/**
+ * Portfolio — the personal site itself, served from /portfolio in this same
+ * deployment and rendered inside the desktop. "Open full screen" hands the
+ * visitor the real URL instead of a copy of it.
+ */
 export const PortfolioApp: React.FC<Props> = (props) => (
-    <ShellWindow {...props} title="Aditya Balaji — Portfolio" icon="portfolio" status="5 objects · AdityaOS">
-        <div className="portfolio-panel">
-            <aside className="portfolio-rail">
-                <div className="portrait-monogram">AB</div>
-                <p className="eyebrow">MUMBAI · INDIA</p>
-                <h2>Aditya<br/>Balaji</h2>
-                <p>Builder, researcher, and student working across software, markets, AI, and science.</p>
-                <div className="portfolio-socials">
-                    <button onClick={() => open(links.github)}>GitHub</button>
-                    <button onClick={() => open(links.linkedin)}>LinkedIn</button>
-                    <a href="mailto:aditya160509@gmail.com">Email</a>
-                    <a href="files/Aditya_Balaji_Resume.pdf" target="_blank" rel="noreferrer">Resume ↓</a>
-                </div>
-            </aside>
-            <main className="portfolio-main">
-                <p className="eyebrow">SELECTED WORK</p>
-                <h1>Ideas built into working systems.</h1>
-                <div className="project-grid">
-                    <button onClick={() => open(links.gradeCentral)}><span>01</span><b>Grade Central</b><small>Academic workflow and grade intelligence.</small></button>
-                    <button onClick={() => open(links.phenosync)}><span>02</span><b>PhenoSync</b><small>Research software and experimental tooling.</small></button>
-                    <button onClick={() => open(links.notes)}><span>03</span><b>Study Notes</b><small>An open, structured learning archive.</small></button>
-                    <button onClick={() => open(links.github)}><span>04</span><b>Code Archive</b><small>More experiments, prototypes, and repositories.</small></button>
-                </div>
-                <div className="portfolio-note">Double-click any desktop application to explore the rest of the workstation.</div>
-            </main>
+    <ShellWindow
+        {...props}
+        title="Aditya Balaji — Portfolio"
+        icon="portfolio"
+        className="site-app"
+        status="the live personal site, running inside the desktop"
+        width={1120}
+        height={720}
+        top={10}
+        left={24}
+    >
+        <div className="site-bar">
+            <span>aditya-balaji.dev · portfolio</span>
+            <button onClick={() => open(`${window.location.origin}/portfolio/`)}>⤢ Open full screen ↗</button>
         </div>
+        <iframe
+            className="site-frame"
+            title="Aditya Balaji — Portfolio"
+            src="/portfolio/"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
+        />
     </ShellWindow>
 );
 
@@ -131,17 +133,153 @@ export const TradingApp: React.FC<Props> = (props) => (
     </ShellWindow>
 );
 
+type SpotifyTrack = {
+    id: string;
+    title: string;
+    artist: string;
+    album: string;
+    duration: string;
+    url: string;
+    art: string;
+    image?: string;
+};
+
+const SPOTIFY_TRACKS: SpotifyTrack[] = [
+    { id: 'mohabbat', title: 'Mujhse Mohabbat Ka Izhaar Karta', artist: 'Satrang Music Official', album: 'Radio rotation · 2025', duration: '4:58', url: 'audio/radio/1.mp3', art: 'linear-gradient(140deg, #a56d4e, #e8c596 45%, #30343d)', image: '/desktop/assets/radio-saloon/cover.jpg' },
+    { id: 'night-build', title: 'Night Build', artist: 'Aditya FM', album: 'After hours', duration: '5:42', url: 'audio/radio/2.mp3', art: 'linear-gradient(140deg, #132c4b, #6d9ab5 45%, #e0b16c)' },
+    { id: 'deep-work', title: 'Deep Work', artist: 'Aditya FM', album: 'Focus desk', duration: '4:36', url: 'audio/radio/3.mp3', art: 'linear-gradient(140deg, #34221d, #b15b35 48%, #efcf8f)' },
+    { id: 'soft-signal', title: 'Soft Signal', artist: 'Open Frequency', album: 'Late Night Code', duration: '3:28', url: 'audio/radio/2.mp3', art: 'linear-gradient(140deg, #22354b, #9a8fc0 52%, #f0b9b2)' },
+    { id: 'slow-morning', title: 'Slow Morning', artist: 'Aditya FM', album: 'Daily mix', duration: '4:12', url: 'audio/radio/1.mp3', art: 'linear-gradient(140deg, #42513d, #cfb873 58%, #f5e3b5)' },
+];
+
+const SPOTIFY_PLAYLISTS = [
+    { id: 'focus', name: 'Deep Focus', detail: 'Instrumental calm for long stretches of work', meta: 'Aditya · 28 tracks', art: 'linear-gradient(135deg, #244c45, #b6d2b1 50%, #e2b16b)', trackIds: ['deep-work', 'soft-signal', 'slow-morning'] },
+    { id: 'discover', name: 'Discover Weekly', detail: 'Fresh finds for a curious afternoon', meta: 'Spotify editorial · 30 tracks', art: 'linear-gradient(135deg, #412b63, #d15f92 52%, #f4cb76)', trackIds: ['mohabbat', 'night-build', 'soft-signal'] },
+    { id: 'late-night', name: 'Late Night Code', detail: 'Low lights, clean commits, no distractions', meta: 'Aditya · 16 tracks', art: 'linear-gradient(135deg, #0c2238, #34727d 58%, #e69f67)', trackIds: ['night-build', 'deep-work', 'mohabbat'] },
+];
+
+const spotifyTime = (seconds: number) => {
+    if (!Number.isFinite(seconds) || seconds <= 0) return '0:00';
+    return `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
+};
+
+export const SpotifySpotubeApp: React.FC<Props> = (props) => {
+    const audio = useRef<HTMLAudioElement>(null);
+    const [view, setView] = useState<'Home' | 'Search' | 'Library'>('Home');
+    const [playlist, setPlaylist] = useState('focus');
+    const [query, setQuery] = useState('');
+    const [currentId, setCurrentId] = useState('deep-work');
+    const [playing, setPlaying] = useState(false);
+    const [liked, setLiked] = useState<string[]>(['deep-work']);
+    const [shuffle, setShuffle] = useState(false);
+    const [repeat, setRepeat] = useState(false);
+    const [queueOpen, setQueueOpen] = useState(false);
+    const [volume, setVolume] = useState(0.72);
+    const [elapsed, setElapsed] = useState(0);
+    const [duration, setDuration] = useState(0);
+
+    const current = SPOTIFY_TRACKS.find((track) => track.id === currentId) || SPOTIFY_TRACKS[0];
+    const selectedPlaylist = SPOTIFY_PLAYLISTS.find((item) => item.id === playlist) || SPOTIFY_PLAYLISTS[0];
+    const searchedTracks = SPOTIFY_TRACKS.filter((track) => `${track.title} ${track.artist} ${track.album}`.toLowerCase().includes(query.toLowerCase()));
+    const playlistTracks = selectedPlaylist.trackIds.map((id) => SPOTIFY_TRACKS.find((track) => track.id === id)).filter(Boolean) as SpotifyTrack[];
+
+    useEffect(() => {
+        if (audio.current) audio.current.volume = volume;
+    }, [volume]);
+
+    const playTrack = (id: string) => {
+        setCurrentId(id);
+        setPlaying(true);
+        setElapsed(0);
+        window.setTimeout(() => {
+            const node = audio.current;
+            if (!node) return;
+            node.load();
+            node.play().catch(() => setPlaying(false));
+        }, 50);
+    };
+
+    const advance = (direction: 1 | -1) => {
+        if (repeat && direction === 1) {
+            playTrack(current.id);
+            return;
+        }
+        const pool = playlistTracks.length ? playlistTracks : SPOTIFY_TRACKS;
+        const currentIndex = Math.max(0, pool.findIndex((track) => track.id === current.id));
+        const nextIndex = shuffle ? Math.floor(Math.random() * pool.length) : (currentIndex + direction + pool.length) % pool.length;
+        playTrack(pool[nextIndex].id);
+    };
+
+    const togglePlayback = () => {
+        const node = audio.current;
+        if (!node) return;
+        if (playing) {
+            node.pause();
+            setPlaying(false);
+        } else {
+            node.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+        }
+    };
+
+    const toggleLike = (id: string) => setLiked((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
+    const showPlaylist = (id: string) => { setPlaylist(id); setView('Home'); };
+    const openSearch = () => { setView('Search'); setQuery(''); };
+    return (
+        <ShellWindow {...props} title="Spotify — Aditya Mix" icon="spotify" className="spotify-app spotify-v2" status="Spotube-style local player · no login required · audio plays in this window" width={980} height={660} top={10} left={34}>
+            <aside className="spotify-sidebar">
+                <div className="spotify-brand"><Icon icon="spotify" size={28} /><strong>Spotify</strong><span className="spotify-brand-dot">+ local</span></div>
+                <nav className="spotify-nav" aria-label="Spotify navigation">
+                    <button className={view === 'Home' ? 'active' : ''} onClick={() => setView('Home')}><span>⌂</span> Home</button>
+                    <button className={view === 'Search' ? 'active' : ''} onClick={openSearch}><span>⌕</span> Search</button>
+                    <button className={view === 'Library' ? 'active' : ''} onClick={() => setView('Library')}><span>▤</span> Your Library</button>
+                </nav>
+                <div className="spotify-side-heading"><span>YOUR PLAYLISTS</span><button onClick={() => setView('Library')} aria-label="Add playlist">＋</button></div>
+                <div className="spotify-playlist-list">
+                    {SPOTIFY_PLAYLISTS.map((item) => <button key={item.id} className={playlist === item.id && view === 'Home' ? 'active' : ''} onClick={() => showPlaylist(item.id)}><i style={{ background: item.art }} />{item.name}</button>)}
+                    <button className="spotify-liked-link" onClick={() => setView('Library')}><i className="liked-mini">♥</i> Liked Songs <small>{liked.length}</small></button>
+                </div>
+                <div className="spotify-sidebar-foot"><span className="spotify-local-badge">●</span><div><strong>AdityaOS player</strong><small>Local playback enabled</small></div></div>
+            </aside>
+
+            <main className="spotify-content">
+                <header className="spotify-topbar">
+                    <div className="spotify-history"><button aria-label="Back">‹</button><button aria-label="Forward">›</button></div>
+                    <label className="spotify-search"><span>⌕</span><input value={query} onChange={(event) => { setQuery(event.target.value); setView('Search'); }} placeholder="What do you want to play?" aria-label="Search Spotify" /><kbd>⌘ K</kbd></label>
+                    <button className="spotify-web-button" onClick={() => open('https://open.spotify.com')}><span>OPEN WEB PLAYER</span> ↗</button>
+                </header>
+
+                {view === 'Home' && <div className="spotify-scroll">
+                    <section className="spotify-hero-v2" style={{ background: selectedPlaylist.art }}>
+                        <div className="spotify-hero-art" style={{ background: selectedPlaylist.art }}><span>{selectedPlaylist.name === 'Deep Focus' ? '◒' : selectedPlaylist.name === 'Discover Weekly' ? '✦' : '◈'}</span></div>
+                        <div className="spotify-hero-copy"><p>PLAYLIST · ADITYA'S WORKSTATION</p><h1>{selectedPlaylist.name}</h1><span>{selectedPlaylist.detail}</span><small>{selectedPlaylist.meta} · local player</small><div className="spotify-hero-actions"><button className="spotify-green-button" onClick={() => playTrack(playlistTracks[0]?.id || current.id)}>{playing && playlistTracks.some((track) => track.id === current.id) ? 'Ⅱ' : '▶'} <span>Play</span></button><button className={`spotify-ghost-icon ${liked.includes(current.id) ? 'liked' : ''}`} onClick={() => toggleLike(current.id)} aria-label="Like current track">♥</button><button className="spotify-ghost-icon" onClick={() => setQueueOpen(!queueOpen)} aria-label="Open queue">☷</button><button className="spotify-more" aria-label="More options">•••</button></div></div>
+                    </section>
+                    <section className="spotify-section"><div className="spotify-section-title"><div><p>CURATED FOR YOU</p><h2>Good evening, Aditya</h2></div><button onClick={() => setView('Library')}>Show all</button></div><div className="spotify-card-row">{SPOTIFY_PLAYLISTS.map((item) => <button key={item.id} className="spotify-playlist-card" onClick={() => showPlaylist(item.id)}><span className="spotify-card-art" style={{ background: item.art }}>{item.name === 'Deep Focus' ? '◒' : item.name === 'Discover Weekly' ? '✦' : '◈'}</span><strong>{item.name}</strong><small>{item.detail}</small></button>)}</div></section>
+                    <section className="spotify-section spotify-track-section"><div className="spotify-section-title"><div><p>{selectedPlaylist.name.toUpperCase()}</p><h2>Tracks for your desk</h2></div><button onClick={() => open(`https://open.spotify.com/playlist/${playlist === 'focus' ? '37i9dQZEVXbLZ52XmnySJg' : playlist === 'discover' ? '37i9dQZF1DXcBWIGoYBM5M' : '37i9dQZF1DWZeKCadgRdKQ'}`)}>Open playlist ↗</button></div><div className="spotify-track-list">{playlistTracks.map((track, index) => <button key={track.id} className={`spotify-track-row ${current.id === track.id ? 'current' : ''}`} onDoubleClick={() => playTrack(track.id)} onClick={() => setCurrentId(track.id)}><span className="spotify-track-number">{current.id === track.id && playing ? '♫' : index + 1}</span><span className="spotify-track-art" style={{ background: track.art }}>{track.image ? <img src={track.image} alt="" /> : '♪'}</span><span className="spotify-track-name"><strong>{track.title}</strong><small>{track.artist}</small></span><span className="spotify-track-album">{track.album}</span><span className="spotify-track-like" onClick={(event) => { event.stopPropagation(); toggleLike(track.id); }}>{liked.includes(track.id) ? '♥' : '♡'}</span><span className="spotify-track-duration">{track.duration}</span><span className="spotify-track-more">•••</span></button>)}</div></section>
+                </div>}
+
+                {view === 'Search' && <div className="spotify-scroll spotify-search-view"><section className="spotify-search-heading"><p>SEARCH</p><h1>{query ? `Results for “${query}”` : 'Find your next listen'}</h1><span>Search across your local AdityaOS library.</span></section><section className="spotify-section"><div className="spotify-section-title"><div><p>TRACKS</p><h2>{searchedTracks.length} results</h2></div></div><div className="spotify-track-list">{searchedTracks.map((track, index) => <button key={track.id} className={`spotify-track-row ${current.id === track.id ? 'current' : ''}`} onDoubleClick={() => playTrack(track.id)} onClick={() => setCurrentId(track.id)}><span className="spotify-track-number">{index + 1}</span><span className="spotify-track-art" style={{ background: track.art }}>{track.image ? <img src={track.image} alt="" /> : '♪'}</span><span className="spotify-track-name"><strong>{track.title}</strong><small>{track.artist}</small></span><span className="spotify-track-album">{track.album}</span><span className="spotify-track-like" onClick={(event) => { event.stopPropagation(); toggleLike(track.id); }}>{liked.includes(track.id) ? '♥' : '♡'}</span><span className="spotify-track-duration">{track.duration}</span><span className="spotify-track-more">•••</span></button>)}</div></section></div>}
+
+                {view === 'Library' && <div className="spotify-scroll spotify-library-view"><section className="spotify-search-heading"><p>YOUR LIBRARY</p><h1>Saved for later.</h1><span>Playlists and tracks that keep the signal moving.</span></section><div className="spotify-library-grid">{SPOTIFY_PLAYLISTS.map((item) => <button key={item.id} className="spotify-library-card" onClick={() => showPlaylist(item.id)}><span className="spotify-card-art" style={{ background: item.art }}>{item.name === 'Deep Focus' ? '◒' : item.name === 'Discover Weekly' ? '✦' : '◈'}</span><div><strong>{item.name}</strong><small>{item.meta}</small></div><span>›</span></button>)}<button className="spotify-library-card"><span className="spotify-card-art liked-art">♥</span><div><strong>Liked Songs</strong><small>{liked.length} saved tracks</small></div><span>›</span></button></div></div>}
+
+                {queueOpen && <aside className="spotify-queue"><header><strong>Queue</strong><button onClick={() => setQueueOpen(false)}>×</button></header><p>NOW PLAYING</p><div className="spotify-queue-current"><span className="spotify-track-art" style={{ background: current.art }}>{current.image ? <img src={current.image} alt="" /> : '♪'}</span><div><strong>{current.title}</strong><small>{current.artist}</small></div></div><p>NEXT UP</p>{SPOTIFY_TRACKS.filter((track) => track.id !== current.id).slice(0, 3).map((track) => <button className="spotify-queue-row" key={track.id} onClick={() => playTrack(track.id)}><span className="spotify-track-art" style={{ background: track.art }}>♪</span><span><strong>{track.title}</strong><small>{track.artist}</small></span></button>)}</aside>}
+
+                <footer className="spotify-player-v2"><div className="spotify-now-playing"><span className="spotify-player-art" style={{ background: current.art }}>{current.image ? <img src={current.image} alt="" /> : '♪'}</span><div><strong>{current.title}</strong><small>{current.artist}</small></div><button className={liked.includes(current.id) ? 'liked' : ''} onClick={() => toggleLike(current.id)} aria-label="Like track">{liked.includes(current.id) ? '♥' : '♡'}</button></div><div className="spotify-player-controls"><div><button className={shuffle ? 'selected' : ''} onClick={() => setShuffle(!shuffle)} aria-label="Shuffle">⤨</button><button onClick={() => advance(-1)} aria-label="Previous">|◀</button><button className="spotify-player-play" onClick={togglePlayback} aria-label={playing ? 'Pause' : 'Play'}>{playing ? 'Ⅱ' : '▶'}</button><button onClick={() => advance(1)} aria-label="Next">▶|</button><button className={repeat ? 'selected' : ''} onClick={() => setRepeat(!repeat)} aria-label="Repeat">↻</button></div><label className="spotify-player-progress"><span>{spotifyTime(elapsed)}</span><input type="range" min="0" max={duration || 100} value={Math.min(elapsed, duration || 100)} onChange={(event) => { const value = Number(event.target.value); setElapsed(value); if (audio.current) audio.current.currentTime = value; }} aria-label="Track progress" /><span>{duration ? spotifyTime(duration) : current.duration}</span></label></div><div className="spotify-player-tools"><button className={queueOpen ? 'selected' : ''} onClick={() => setQueueOpen(!queueOpen)} aria-label="Queue">☷</button><button aria-label="Lyrics">▤</button><span>🔊</span><input type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => setVolume(Number(event.target.value))} aria-label="Volume" /></div><audio ref={audio} src={current.url} preload="metadata" onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => advance(1)} onTimeUpdate={(event) => setElapsed(event.currentTarget.currentTime)} onLoadedMetadata={(event) => setDuration(event.currentTarget.duration)} /></footer>
+            </main>
+        </ShellWindow>
+    );
+};
+
 export const SpotifyApp: React.FC<Props> = (props) => {
     const [theme, setTheme] = useState('Spicetify · Dracula');
     const [playlist, setPlaylist] = useState('37i9dQZEVXbLZ52XmnySJg');
     const themes: Record<string, string> = { 'Spicetify · Dracula': '#bd93f9', 'Spicetify · Nord': '#88c0d0', 'Spicetify · Gruvbox': '#fabd2f', 'Fastpotify · Dark': '#1db954' };
     const accent = themes[theme];
     return (
-    <ShellWindow {...props} title="Spotify — Aditya Mix" icon="spotify" className="spotify-app" status={`${theme} · real Spotify embed · playback starts on Spotify`}>
-        <aside><div className="spotify-logo" style={{ color: accent }}>●))) <b>Spotify</b></div><button>⌂ Home</button><button>⌕ Search</button><button>▤ Your Library</button><p>PLAYLISTS</p><button onClick={() => setPlaylist('37i9dQZEVXbLZ52XmnySJg')}>Deep Focus</button><button onClick={() => setPlaylist('37i9dQZF1DXcBWIGoYBM5M')}>Discover Weekly</button><button onClick={() => setPlaylist('37i9dQZF1DWZeKCadgRdKQ')}>Late Night Code</button><p>THEME (Spicetify)</p>{Object.keys(themes).map((t) => <button key={t} className={theme === t ? 'active' : ''} style={theme === t ? { borderColor: themes[t], color: themes[t] } : {}} onClick={() => setTheme(t)}>{t}</button>)}<button onClick={() => open('https://spicetify.app/docs/customization/themes')}>Spicetify themes ↗</button><button onClick={() => open('https://fastpotify.rocks/')}>Fastpotify client ↗</button></aside>
-        <main><header><button>‹</button><button>›</button><span style={{ fontSize: 12, opacity: 0.7 }}>{theme}</span><button onClick={() => open('https://open.spotify.com')}>OPEN WEB PLAYER ↗</button></header><section className="spotify-hero"><p>ADITYA'S WORKSTATION</p><h1>Focus Mode</h1><span>Real Spotify embed below — press play (requires Spotify login for full playback).</span><button style={{ background: accent }} onClick={() => open(`https://open.spotify.com/playlist/${playlist}`)}>▶ PLAY ON SPOTIFY</button></section><iframe title="Spotify player" src={`https://open.spotify.com/embed/playlist/${playlist}?utm_source=generator&theme=0`} width="100%" height="260" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" /><h3>Recently played</h3><div className="album-grid">{['Deep Focus','Coding Mode','Peaceful Piano','Synthwave'].map((x,i)=><div key={x}><span>{['◒','▧','◉','◇'][i]}</span><b>{x}</b><small>Made for Aditya</small></div>)}</div></main>
-        <footer><div>◁　▶　▷</div><span>────────●────────</span><div>▤　🔊</div></footer>
-    </ShellWindow>
+        <ShellWindow {...props} title="Spotify — Aditya Mix" icon="spotify" className="spotify-app" status={`${theme} · Top 50 India · playback starts on Spotify`}>
+            <aside><div className="spotify-logo" style={{ color: accent }}>●))) <b>Spotify</b></div><button>⌂ Home</button><button>⌕ Search</button><button>▤ Your Library</button><p>PLAYLISTS</p><button onClick={() => setPlaylist('37i9dQZEVXbLZ52XmnySJg')}>Top 50 India</button><button onClick={() => setPlaylist('37i9dQZF1DXcBWIGoYBM5M')}>Discover Weekly</button><button onClick={() => setPlaylist('37i9dQZF1DWZeKCadgRdKQ')}>Late Night Code</button><p>THEME (Spicetify)</p>{Object.keys(themes).map((t) => <button key={t} className={theme === t ? 'active' : ''} style={theme === t ? { borderColor: themes[t], color: themes[t] } : {}} onClick={() => setTheme(t)}>{t}</button>)}</aside>
+            <main><header><button>‹</button><button>›</button><span style={{ fontSize: 12, opacity: 0.7 }}>{theme}</span><button onClick={() => open('https://open.spotify.com')}>OPEN WEB PLAYER ↗</button></header><section className="spotify-hero"><p>ADITYA'S WORKSTATION</p><h1>Top 50 India</h1><span>Today’s most played tracks in India, ready in the Spotify player below.</span><button style={{ background: accent }} onClick={() => open(`https://open.spotify.com/playlist/${playlist}`)}>▶ PLAY ON SPOTIFY</button></section><iframe title="Spotify Top 50 India player" src={`https://open.spotify.com/embed/playlist/${playlist}?utm_source=generator&theme=0`} width="100%" height="260" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" /><h3>Top 50 India</h3></main>
+            <footer><div>◁　▶　▷</div><span>────────●────────</span><div>▤　🔊</div></footer>
+        </ShellWindow>
     );
 };
 
@@ -282,6 +420,8 @@ export const TerminalApp: React.FC<Props> = (props) => {
     const [cwd, setCwd] = useState('C:\\ADITYA');
     const [lines, setLines] = useState<string[]>(['AdityaOS Developer Console [Version 2.0]', "Type 'help' to begin. Try: ls, cd Projects, cat About\\bio.txt", '']);
     const run = (raw: string) => {
+        unlock('shell-user');
+        if (/^sudo\b/i.test(raw.trim())) unlock('sudo');
         const [cmd, ...args] = raw.trim().split(/\s+/);
         const c = (cmd || '').toLowerCase();
         const arg = args.join(' ');
@@ -544,6 +684,7 @@ export const SettingsApp: React.FC<Props> = (props) => {
         setBusyWall(true);
         try {
             setWall(await saveWallpaper(file));
+            unlock('decorator');
             announceWallpaper();
         } catch (err: any) {
             setWallErr(err?.message || 'Could not use that file.');
@@ -553,6 +694,7 @@ export const SettingsApp: React.FC<Props> = (props) => {
     };
     const applyColor = async (color: string) => {
         setWall(await saveColor(color));
+        unlock('decorator');
         announceWallpaper();
     };
     const resetWall = async () => {
@@ -562,6 +704,7 @@ export const SettingsApp: React.FC<Props> = (props) => {
     };
     const pickBuiltin = async (id: string) => {
         setWall(await saveBuiltin(id));
+        unlock('decorator');
         announceWallpaper();
     };
     const WALL_COLORS: [string, string][] = [
@@ -610,9 +753,7 @@ export const SettingsApp: React.FC<Props> = (props) => {
         {tab === 'Desktop' && <><h2>Desktop</h2><section><h3>Clock & layout</h3>{T('clock24', '24-hour clock', 'Toolbar time format')}{T('autostart', 'Auto-open Portfolio', 'First window on boot')}</section><section><h3>Shortcuts</h3><p>Games (Doom · Oregon Trail · Scrabble · Digger · Wordle), dev apps (Terminal · Python+Node · Chrome · Safari), and portfolio shortcuts stay pinned.</p></section></>}
         {tab === 'Sound' && <><h2>Sound</h2><section><h3>Audio</h3>{T('sound', 'Master sound', 'UI clicks + ambience')}<label>Volume <b>{Math.round(p.volume * 100)}%</b><input type="range" min="0" max="1" step="0.05" value={p.volume} onChange={(e) => save({ ...p, volume: Number(e.target.value) })} /></label></section></>}
         {tab === 'System' && <><h2>System</h2><section><h3>Shell</h3><div className="setting-row"><span>Original desk camera and audio</span><b>ON</b></div><div className="setting-row"><span>Motion optimized MP4</span><b>ON</b></div><div className="setting-row"><span>AdityaOS desktop</span><b>1.0</b></div>{T('skipBoot', 'Skip 3D boot', 'Faster entry on slow devices')}</section></>}
-        {tab === 'About' && <><h2>About</h2><section><h3>AdityaOS 1.0</h3><p>Builder · researcher · student · Mumbai, India. 3D desk by Henry Heffernan source, reskinned with your apps, games, video wallpaper, and paper markets engine.</p><div className="setting-row"><span>GitHub</span><button onClick={() => open(links.github)}>Open ↗</button></div><div className="setting-row"><span>LinkedIn</span><button onClick={() => open(links.linkedin)}>Open ↗</button></div></section></>}
+        {tab === 'About' && <><h2>About</h2><section><h3>AdityaOS 1.0</h3><p>Builder · researcher · student · Mumbai, India. A 3D desk shell reskinned from an open reference scene, running a desktop of working applications — markets, editor, browser, file system and games.</p><div className="setting-row"><span>GitHub</span><button onClick={() => open(links.github)}>Open ↗</button></div><div className="setting-row"><span>LinkedIn</span><button onClick={() => open(links.linkedin)}>Open ↗</button></div></section></>}
         </main>
     </ShellWindow>;
 };
-
-

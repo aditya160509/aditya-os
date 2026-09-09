@@ -1,0 +1,20 @@
+{
+  "name": "AdityaOS — Aditya Balaji",
+  "short_name": "AdityaOS",
+  "description": "A 3D workstation you can actually use: the monitor runs a full desktop of working applications.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0e1116",
+  "background_color": "#0e1116",
+  "icons": [
+    { "src": "/images/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/images/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/images/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Portfolio", "url": "/portfolio/" },
+    { "name": "Desktop", "url": "/desktop/" }
+  ]
+}

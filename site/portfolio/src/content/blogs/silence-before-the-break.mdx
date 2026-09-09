@@ -1,0 +1,46 @@
+---
+title: "Silence Before the Break"
+publishedAt: "2026-05-27"
+summary: "What 22 equity markets say about the moment attention stops helping — and why volatility falls right before it doesn't."
+author: "Aditya Balaji"
+tags: ["research", "market microstructure", "econometrics"]
+---
+
+# Silence Before the Break
+
+Attention is supposed to move markets. More eyes, more trades, more volatility — that
+is the intuition, and for most of the range it holds. The question I kept circling was
+what happens at the top of that range, when a market is already saturated with
+attention and there is nothing left to notice.
+
+## The identification problem
+
+Attention and volatility cause each other. A volatile market draws eyes; eyes make a
+market volatile. Any naive regression is estimating a circle. I used **Lewbel
+identification** — heteroskedasticity-based instruments constructed from the data
+itself — to break the loop without needing an external instrument that does not exist
+for something as diffuse as investor attention.
+
+## The threshold
+
+Rather than assuming where the relationship bends, I estimated it. Profile likelihood
+recovers a structural threshold of **γ\* = 1.5625**, with a Hansen confidence set of
+[1.14, 2.50]. Every standard error is Driscoll–Kraay, because 22 markets in the same
+week are anything but independent.
+
+## The Silence Signature
+
+Past that threshold, volatility does not accelerate. It *falls*. Markets go quiet
+exactly when everyone is watching — and that quiet precedes the breaks. I called the
+effect the Silence Signature, and it survives synthetic-control falsification in **14
+of the 22 markets** individually, not just in the pooled panel.
+
+## Corroboration from a different direction
+
+An empirical threshold is only as convincing as its robustness, so I rebuilt the
+question from scratch as an agent-based simulation — nine behaviourally distinct trader
+archetypes, 10,200 Monte Carlo runs — and estimated the same parameter by Simulated
+Method of Moments. It returned γ\* = 1.5625 again, from a completely different
+methodology.
+
+The paper is peer-reviewed at *Borsa Istanbul Review*.

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Window from '../os/Window';
 import { FS_ROOT, FSNode, fsJoin, fsParent, fsResolve, openApp } from '../../utils/filesystem';
+import { unlock } from '../../utils/achievements';
 
 export interface ExplorerProps extends WindowAppProps {}
 
@@ -57,6 +58,7 @@ const Explorer: React.FC<ExplorerProps> = (props) => {
     const crumbs = path.split('\\').filter(Boolean);
 
     const activate = (n: FSNode) => {
+        if (n.kind === 'text' && path.includes('Research')) unlock('researcher');
         if (n.kind === 'dir') go(fsJoin(path, n.name));
         else if (n.kind === 'link' && n.url) window.open(n.url, '_blank', 'noopener,noreferrer');
         else if (n.kind === 'app' && n.appKey) openApp(n.appKey);

@@ -12,7 +12,6 @@ import Notepad from '../applications/Notepad';
 import Paint from '../applications/Paint';
 import Radio from '../applications/Radio';
 import Calculator from '../applications/Calculator';
-import TaskLog from '../applications/TaskLog';
 import Explorer from '../applications/Explorer';
 import Snake from '../applications/Snake';
 import ChessGame from '../applications/ChessGame';
@@ -21,7 +20,11 @@ import Scrabble from '../applications/Scrabble';
 import { IconName } from '../../assets/icons';
 import { playUiSound } from '../../utils/sound';
 import { loadWallpaper, Wallpaper } from '../../utils/wallpaper';
-import Credits from '../applications/Credits';
+import { noteAppOpened, unlock } from '../../utils/achievements';
+import AchievementToast from './AchievementToast';
+import DesktopPet from './DesktopPet';
+import InstallButton from './InstallButton';
+import PresenceLayer from './PresenceLayer';
 import Digger from '../applications/Digger';
 import {
     ChromeApp, ClaudeApp, DeveloperApp, PortfolioApp,
@@ -139,12 +142,6 @@ const APPLICATIONS: {
         shortcutIcon: 'computerBig',
         component: ThisComputer,
     },
-    tasklog: {
-        key: 'tasklog',
-        name: 'Task Log',
-        shortcutIcon: 'credits',
-        component: TaskLog,
-    },
     explorer: {
         key: 'explorer',
         name: 'Explorer',
@@ -157,12 +154,6 @@ const APPLICATIONS: {
     tetris: { key: 'tetris', name: 'Tetris', shortcutIcon: 'tetris', component: TetrisApp },
     chess: { key: 'chess', name: 'Chess', shortcutIcon: 'chess', component: ChessGame },
     solitaire: { key: 'solitaire', name: 'Solitaire', shortcutIcon: 'solitaire', component: SolitaireApp },
-    credits: {
-        key: 'credits',
-        name: 'Credits',
-        shortcutIcon: 'credits',
-        component: Credits,
-    },
 };
 
 const Desktop: React.FC<DesktopProps> = (props) => {
@@ -209,6 +200,8 @@ const Desktop: React.FC<DesktopProps> = (props) => {
 
     // Decoding a looping video in a background tab burns memory and battery for
     // nothing, so pause it whenever the page is hidden.
+    useEffect(() => { unlock('first-boot'); }, []);
+
     useEffect(() => {
         const onVisibility = () => {
             const v = videoRef.current;
@@ -371,6 +364,7 @@ const Desktop: React.FC<DesktopProps> = (props) => {
 
     const addWindow = useCallback(
         (key: string, element: JSX.Element) => {
+            noteAppOpened(key, Object.keys(APPLICATIONS).length);
             setWindows((prevState) => ({
                 ...prevState,
                 [key]: {
@@ -401,6 +395,10 @@ const Desktop: React.FC<DesktopProps> = (props) => {
                 </video>
             )}
             <div className="desktop-wallpaper-shade" style={{ backgroundColor: `rgba(0,0,0,${wallpaperDim})` }} />
+            <DesktopPet />
+            <AchievementToast />
+            <InstallButton />
+            <PresenceLayer activeApp={Object.keys(windows).slice(-1)[0] || null} />
             {/* For each window in windows, loop over and render  */}
             {Object.keys(windows).map((key) => {
                 const element = windows[key].component;

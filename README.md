@@ -42,7 +42,7 @@ Three.js shell is bundled into `site/outer/public`.
 | Doom · Oregon Trail · Scrabble · Digger | js-dos + DOSBox |
 | Spotify · Radio | Spotify embed · radio-browser.info |
 | Calculator | Qalculate-style unit-aware evaluator |
-| Paint · Notepad · Settings · Task Log | native to this desktop |
+| Paint · Notepad · Settings | native to this desktop |
 
 Vendored projects keep their upstream licence file next to the code they ship with.
 

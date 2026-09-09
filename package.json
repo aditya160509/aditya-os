@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "install:all": "npm --prefix site/inner install && npm --prefix site/outer install",
+    "install:all": "npm --prefix site/inner install && npm --prefix site/outer install && npm --prefix site/portfolio install --legacy-peer-deps",
     "dev": "npm run build && npm start",
-    "build": "npm --prefix site/inner run build && node scripts/stage-desktop.mjs && npm --prefix site/outer run build",
+    "build": "npm --prefix site/inner run build && node scripts/stage-desktop.mjs && npm --prefix site/portfolio run build && node scripts/stage-portfolio.mjs && npm --prefix site/outer run build",
     "start": "npm --prefix site/outer start",
     "vercel-build": "npm run build"
   },
