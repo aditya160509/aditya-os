@@ -24,7 +24,6 @@ import { noteAppOpened, unlock } from '../../utils/achievements';
 import AchievementToast from './AchievementToast';
 import DesktopPet from './DesktopPet';
 import InstallButton from './InstallButton';
-import PresenceLayer from './PresenceLayer';
 import Digger from '../applications/Digger';
 import {
     ChromeApp, ClaudeApp, DeveloperApp, PortfolioApp,
@@ -56,7 +55,7 @@ const APPLICATIONS: {
         component: PortfolioApp,
     },
     claude: {
-        key: 'claude', name: 'Claude', shortcutIcon: 'claude', component: ClaudeApp,
+        key: 'claude', name: 'Assistant', shortcutIcon: 'claude', component: ClaudeApp,
     },
     trading: {
         key: 'trading', name: 'Markets', shortcutIcon: 'trading', component: TradingApp,
@@ -398,7 +397,6 @@ const Desktop: React.FC<DesktopProps> = (props) => {
             <DesktopPet />
             <AchievementToast />
             <InstallButton />
-            <PresenceLayer activeApp={Object.keys(windows).slice(-1)[0] || null} />
             {/* For each window in windows, loop over and render  */}
             {Object.keys(windows).map((key) => {
                 const element = windows[key].component;

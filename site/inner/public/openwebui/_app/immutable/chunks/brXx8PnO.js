@@ -1,2 +1,0 @@
-import"./CWj6FrbW.js";import"./69_IOA4Y.js";import{t as i,a as n,E as p}from"./7a2fV5I9.js";import{a as l,s as m,c}from"./3tOhmI7k.js";import{p as r}from"./DPBuKmzL.js";var d=p('<svg xmlns="http://www.w3.org/2000/svg" fill="none" aria-hidden="true" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"></path></svg>');function g(o,s){let e=r(s,"className",8,"w-4 h-4"),a=r(s,"strokeWidth",8,"1.5");var t=d();i(()=>{l(t,"stroke-width",a()),m(t,0,c(e()))}),n(o,t)}export{g as M};
-//# sourceMappingURL=brXx8PnO.js.map

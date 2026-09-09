@@ -1,0 +1,18 @@
+# Presence relay for the portfolio's live cursors and visitor chat.
+#
+# Deploy: Render dashboard -> New -> Blueprint -> point at this repo.
+# Then set NEXT_PUBLIC_WS_URL in Vercel to the service's https:// URL and
+# redeploy the site; until that variable exists the client never opens a socket.
+services:
+  - type: web
+    name: aditya-presence
+    runtime: node
+    plan: free
+    rootDir: presence
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      # Every origin allowed to open a socket. Add preview domains as needed.
+      - key: ALLOWED_ORIGINS
+        value: https://aditya-os.vercel.app,http://localhost:3000,http://localhost:8080

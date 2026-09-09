@@ -30,6 +30,60 @@ const ProjectsSection = () => {
   );
 };
 
+/**
+ * Card preview for projects that shipped with a rendered loop. It stays paused
+ * on its poster until the card is hovered or scrolled into view on touch, so a
+ * grid of seven projects never decodes seven videos at once.
+ */
+const ProjectLoop = ({ src, poster, title }: { src: string; poster: string; title: string }) => {
+  const ref = React.useRef<HTMLVideoElement>(null);
+  const [canHover, setCanHover] = React.useState(true);
+
+  React.useEffect(() => {
+    setCanHover(window.matchMedia("(hover: hover)").matches);
+  }, []);
+
+  // Without hover there is nothing to trigger playback, so fall back to
+  // visibility: play while the card is on screen, pause as soon as it leaves.
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el || canHover) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) el.play().catch(() => {});
+        else el.pause();
+      },
+      { threshold: 0.4 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [canHover]);
+
+  const play = () => ref.current?.play().catch(() => {});
+  const stop = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.pause();
+    el.currentTime = 0;
+  };
+
+  return (
+    <video
+      ref={ref}
+      className="absolute inset-0 h-full w-full object-cover"
+      src={src}
+      poster={poster}
+      aria-label={title}
+      muted
+      loop
+      playsInline
+      preload="none"
+      onMouseEnter={canHover ? play : undefined}
+      onMouseLeave={canHover ? stop : undefined}
+    />
+  );
+};
+
 const ProjectCard = ({ project }: { project: Project }) => {
   return (
     <div className="flex items-center justify-center">
@@ -39,13 +93,20 @@ const ProjectCard = ({ project }: { project: Project }) => {
             className="group relative w-full max-w-[400px] h-auto rounded-lg overflow-hidden ring-1 ring-white/5"
             style={{ aspectRatio: "3/2" }}
           >
-            {/* `src` can be any aspect ratio (tall pages pan, normal ones fit);
-                the wallpaper is an optional /assets/backgrounds/<id>.jpg. */}
-            <ScrollingPreview
-              src={project.src}
-              alt={project.title}
-              bg={`/portfolio/assets/backgrounds/${project.id}.jpg`}
-            />
+            {/* A project with a rendered loop plays it on hover (and on touch,
+                where there is no hover, straight away); the rest pan their
+                screenshot. `src` doubles as the video's poster frame. */}
+            {project.video ? (
+              <ProjectLoop src={project.video} poster={project.src} title={project.title} />
+            ) : (
+              /* `src` can be any aspect ratio (tall pages pan, normal ones fit);
+                 the wallpaper is an optional /assets/backgrounds/<id>.jpg. */
+              <ScrollingPreview
+                src={project.src}
+                alt={project.title}
+                bg={`/portfolio/assets/backgrounds/${project.id}.jpg`}
+              />
+            )}
             <div className="absolute w-full h-24 bottom-0 left-0 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none z-10">
               <div className="flex flex-col h-full items-start justify-end p-4">
                 <div className="text-lg text-left [text-shadow:0_1px_4px_rgba(0,0,0,0.6)]">

@@ -175,10 +175,13 @@ const SocketContextProvider = ({ children }: { children: ReactNode }) => {
     newSocket.on("users-updated", (data: User[]) => {
       setUsers(data);
     });
-    newSocket.on("cursor-changed", (data: { pos: { x: number; y: number }; socketId: string }) => {
+    newSocket.on("cursor-changed", (data: { pos: { x: number; y: number } | null; socketId: string }) => {
       setCursorPositions(prev => {
         const next = new Map(prev);
-        next.set(data.socketId, data.pos);
+        // A null position is the server saying that visitor left: drop the
+        // entry rather than leaving a pointer frozen where they last were.
+        if (data.pos) next.set(data.socketId, data.pos);
+        else next.delete(data.socketId);
         return next;
       });
     });

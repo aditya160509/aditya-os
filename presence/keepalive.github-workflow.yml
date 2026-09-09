@@ -1,0 +1,25 @@
+# Copy this file to .github/workflows/presence-keepalive.yml through the
+# GitHub web UI (Add file -> Create new file). It cannot be pushed from the
+# CLI here because the token in use lacks the `workflow` scope.
+#
+# Render idles a free web service after ~15 minutes without traffic, and the
+# cold start costs the first visitor about a minute of dead cursors. Render's
+# own cron jobs are a paid feature, so the ping lives here instead.
+#
+# Scheduled runs stop automatically if the repository sees no activity for 60
+# days; re-enable them from the Actions tab if that happens.
+name: presence keepalive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake the presence relay
+        run: |
+          curl -sS --max-time 60 --retry 3 --retry-delay 10 \
+            "${{ vars.PRESENCE_URL || 'https://aditya-presence.onrender.com' }}/healthz"

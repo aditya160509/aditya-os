@@ -1,0 +1,13 @@
+{
+  "name": "aditya-presence",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Socket.io relay backing the live cursors and visitor chat on the portfolio.",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "socket.io": "^4.8.1"
+  }
+}

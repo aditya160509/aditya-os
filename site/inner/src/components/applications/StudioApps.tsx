@@ -5,7 +5,7 @@ import Icon from '../general/Icon';
 import { playUiSound } from '../../utils/sound';
 import { FS_ROOT, FSNode, fsJoin, fsResolve, openApp } from '../../utils/filesystem';
 import { unlock } from '../../utils/achievements';
-import { announceWallpaper, BUILTIN_COUNT, builtinId, builtinThumb, clearWallpaper, loadWallpaper, saveBuiltin, saveColor, saveWallpaper, Wallpaper } from '../../utils/wallpaper';
+import { announceWallpaper, BUILTIN_COUNT, builtinId, builtinSrc, builtinThumb, clearWallpaper, loadWallpaper, saveBuiltin, saveColor, saveWallpaper, Wallpaper } from '../../utils/wallpaper';
 
 loader.config({ paths: { vs: 'monaco/vs' } });
 
@@ -78,32 +78,172 @@ export const PortfolioApp: React.FC<Props> = (props) => (
 );
 
 /**
- * AI desk — runs the real Open WebUI frontend (open-webui/open-webui, BSD-3)
- * built from source and vendored into public/openwebui. The Python backend
- * does not exist on a static site, so the outer Express server answers the
- * handful of boot endpoints with canned config: the UI is genuine and fully
- * navigable, there is simply no model attached.
+ * AI desk — a self-contained assistant surface. There is no model behind it and
+ * it never leaves the browser: replies are drawn from a small local corpus about
+ * this desktop and the work it showcases, streamed a token at a time so the
+ * interaction feels real. Open WebUI used to live here as a 66 MB vendored
+ * build; this replaces it at a fraction of the weight.
  */
-export const ClaudeApp: React.FC<Props> = (props) => (
-    <ShellWindow
-        {...props}
-        title="Open WebUI — Aditya"
-        icon="claude"
-        className="webui-app"
-        status="open-webui frontend (BSD-3) · built from source · no model backend attached"
-        width={1120}
-        height={720}
-        top={10}
-        left={24}
-    >
-        <iframe
-            className="webui-frame"
-            title="Open WebUI"
-            src="openwebui/"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
-        />
-    </ShellWindow>
-);
+type Turn = { role: 'user' | 'assistant'; text: string };
+
+const CANNED: { match: RegExp; reply: string }[] = [
+    {
+        match: /paper|research|publication|manuscript|journal/i,
+        reply: "Three of them, all readable from the Portfolio app under Research.\n\n**Silence Before the Break** — an attention-density threshold (γ* = 1.5625) above which 23 equity markets stop processing information independently and start following a shared narrative. Calibrated on 2015–2020, frozen, and still correct on the 2021–2025 holdout.\n\n**When Realized Outcomes Outweigh Predictive Signals** — 100,801 player-gameweeks of Fantasy Premier League. The crowd's holdings are informative, yet it reallocates far more toward a goal than toward the signal that actually predicts better.\n\n**Asymmetric phenological advance** — blueberry flowering has advanced 5.03 days a year while its pollinator hasn't moved. Overlap probability has collapsed 99.1% since 2016.",
+    },
+    {
+        match: /phenosync|pollinat|bee|climate|blueberr/i,
+        reply: "PhenoSync converts effort-biased GBIF citizen-science records into validated annual mismatch estimates. The core trick is an adaptive percentile first-event estimator — a 30× RMSE improvement over taking the naive minimum when observer effort is skewed.\n\nNorth American blueberry–bumblebee comes out as a confirmed trend at 4.57 days/year (p = 0.0003, R² = 0.83), which is 4.7× more than temperature alone explains. Western European rapeseed lands on the watchlist. South Asia is flagged data-limited rather than forced into significance.",
+    },
+    {
+        match: /quant|attention|threshold|market|volatil|liquidit/i,
+        reply: "The finding is that markets don't drift into instability, they snap. Below γ* investors weight private signals; above it they coordinate on the public narrative, liquidity providers withdraw depth against one-sided flow, and volatility amplifies.\n\nThe part I find most useful is the Silence Signature: three hours before a crossing, realized volatility sits at 0.62× baseline. Surveillance calibrated to *rising* variance is structurally blind to it, which is why the monitor fires on coordination stress and correctly abstains on credit stress like SVB.",
+    },
+    {
+        match: /how.*(built|made)|stack|three\.?js|webgl|tech/i,
+        reply: "Two apps stacked. The outer shell is Three.js + webpack — the CRT, the room, the monitor you're looking through. The inner desktop is a React app rendered to the screen's texture, so every window, the file system and the games are real DOM, not baked geometry.\n\nThe apps inside are genuine upstream builds rather than lookalikes: lichess chessground for the board, js-dos + DOSBox for Doom, OpenCharts for the terminal, Monaco for the editor.",
+    },
+    {
+        match: /game|doom|chess|tetris|solitaire|minesweeper|wordle/i,
+        reply: "All playable, all vendored from their real sources — Doom and Scrabble through js-dos, chess on lichess's chessground with chess.js underneath, Minesweeper from nickarocho, Solitaire from scarolan/klondike, Tetris and Pong from straker's CC0 originals, Wordle from modem7's fork.\n\nThe Konami code does something. So does typing `sudo` in the terminal.",
+    },
+    {
+        match: /wallpaper|background|theme|customi/i,
+        reply: "Settings → Wallpaper. There are 88 built-in loops, or you can drop in your own image or video and it'll be downscaled and stored in your browser's IndexedDB — it never uploads anywhere. Each built-in has a download link too, if you want the file itself.",
+    },
+    {
+        match: /hire|contact|email|resume|cv|reach/i,
+        reply: "The résumé PDF is in the Portfolio app and in the file system under `/home/aditya/documents`. Contact runs through the form on the portfolio site, which opens a mail compose rather than posting anywhere.",
+    },
+    {
+        match: /who|about|aditya|yourself/i,
+        reply: "Aditya Balaji — independent quantitative researcher, currently working across market microstructure, ecological phenology and sports-betting efficiency. Founded a Quant Finance Club, interned at MalkansView.\n\nThe through-line across the three papers is the same question in different clothes: what happens to a system when the agents inside it stop reasoning independently.",
+    },
+    {
+        match: /model|gpt|claude|llm|are you|real ai/i,
+        reply: "No model. I'm a few hundred lines of pattern matching and a typing animation, running entirely in your tab — nothing you type is sent anywhere.\n\nThe honest version of an AI app on a static site is one that doesn't pretend to have a backend.",
+    },
+];
+
+const FALLBACK = [
+    "I only know this desktop and the work behind it — try asking about the research papers, the projects, how the 3D shell is built, or the games.",
+    "That's outside what I have locally. Ask me about PhenoSync, the attention-threshold paper, the Fantasy Premier League study, or how any of these apps were put together.",
+];
+
+const SUGGESTIONS = [
+    'What research have you published?',
+    'How was this desktop built?',
+    'Tell me about PhenoSync',
+    'Which games actually work?',
+];
+
+const replyFor = (q: string) =>
+    CANNED.find((c) => c.match.test(q))?.reply ??
+    FALLBACK[Math.floor(Math.random() * FALLBACK.length)];
+
+export const ClaudeApp: React.FC<Props> = (props) => {
+    const [turns, setTurns] = useState<Turn[]>([]);
+    const [draft, setDraft] = useState('');
+    const [streaming, setStreaming] = useState(false);
+    const scroller = useRef<HTMLDivElement>(null);
+    const timers = useRef<number[]>([]);
+
+    // Drop any in-flight stream when the window closes, so a half-typed reply
+    // cannot land on an unmounted component.
+    useEffect(() => () => { timers.current.forEach(clearTimeout); }, []);
+
+    useEffect(() => {
+        const el = scroller.current;
+        if (el) el.scrollTop = el.scrollHeight;
+    }, [turns, streaming]);
+
+    const ask = (question: string) => {
+        const q = question.trim();
+        if (!q || streaming) return;
+        setDraft('');
+        setTurns((t) => [...t, { role: 'user', text: q }, { role: 'assistant', text: '' }]);
+        setStreaming(true);
+        playUiSound('key');
+        unlock('curious');
+
+        const full = replyFor(q);
+        // Stream in word chunks with a short lead-in, which reads closer to a
+        // real completion than revealing the whole block at once.
+        const words = full.split(' ');
+        let shown = 0;
+        const step = () => {
+            shown += 1 + Math.floor(Math.random() * 2);
+            const text = words.slice(0, shown).join(' ');
+            setTurns((t) => [...t.slice(0, -1), { role: 'assistant', text }]);
+            if (shown < words.length) {
+                timers.current.push(window.setTimeout(step, 18 + Math.random() * 34));
+            } else {
+                setStreaming(false);
+            }
+        };
+        timers.current.push(window.setTimeout(step, 320));
+    };
+
+    return (
+        <ShellWindow
+            {...props}
+            title="Assistant — Aditya"
+            icon="claude"
+            className="assistant-app"
+            status="runs entirely in your browser · no model, no network"
+            width={860}
+            height={640}
+            top={10}
+            left={24}
+        >
+            <div className="assistant">
+                <div className="assistant-log" ref={scroller}>
+                    {turns.length === 0 && (
+                        <div className="assistant-intro">
+                            <h2>Ask about the work</h2>
+                            <p>
+                                No model sits behind this — replies come from a local corpus and
+                                nothing you type leaves the page.
+                            </p>
+                            <div className="assistant-chips">
+                                {SUGGESTIONS.map((s) => (
+                                    <button key={s} type="button" onClick={() => ask(s)}>{s}</button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    {turns.map((t, i) => (
+                        <div key={i} className={`assistant-turn is-${t.role}`}>
+                            <div className="assistant-who">{t.role === 'user' ? 'You' : 'Assistant'}</div>
+                            <div className="assistant-text">
+                                {t.text.split('\n').map((line, j) => (
+                                    <p key={j} dangerouslySetInnerHTML={{
+                                        __html: line.replace(
+                                            /\*\*(.+?)\*\*/g, '<strong>$1</strong>',
+                                        ).replace(/`(.+?)`/g, '<code>$1</code>'),
+                                    }} />
+                                ))}
+                                {streaming && i === turns.length - 1 && <span className="assistant-caret" />}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <form
+                    className="assistant-composer"
+                    onSubmit={(e: FormEvent) => { e.preventDefault(); ask(draft); }}
+                >
+                    <input
+                        value={draft}
+                        onChange={(e) => setDraft(e.target.value)}
+                        placeholder="Ask about the research, the projects, or this desktop…"
+                        aria-label="Message the assistant"
+                    />
+                    <button type="submit" disabled={!draft.trim() || streaming}>Send</button>
+                </form>
+            </div>
+        </ShellWindow>
+    );
+};
 
 /**
  * Markets — OpenCharts (dylanpersonguy/OpenCharts), the open-source browser
@@ -734,17 +874,21 @@ export const SettingsApp: React.FC<Props> = (props) => {
                     <button key={name} title={name} style={{ background: css }} onClick={() => applyColor(css)} />
                 ))}
             </div>
-            <p className="wall-label">Wallspace library · {BUILTIN_COUNT} loops</p>
+            <p className="wall-label">Wallspace library · {BUILTIN_COUNT} loops <small>— click to apply, ⤓ to keep the file</small></p>
             <div className="wall-grid">
                 {Array.from({ length: BUILTIN_COUNT }, (_, i) => builtinId(i + 1)).map((id) => (
-                    <button
-                        key={id}
-                        className={wall?.src?.includes(id) ? 'on' : ''}
-                        title={id}
-                        onClick={() => pickBuiltin(id)}
-                    >
-                        <img src={builtinThumb(id)} alt="" loading="lazy" decoding="async" />
-                    </button>
+                    <div key={id} className={`wall-cell${wall?.src?.includes(id) ? ' on' : ''}`}>
+                        <button title={`Use ${id}`} onClick={() => pickBuiltin(id)}>
+                            <img src={builtinThumb(id)} alt="" loading="lazy" decoding="async" />
+                        </button>
+                        <a
+                            className="wall-get"
+                            href={builtinSrc(id)}
+                            download={`${id}.mp4`}
+                            title={`Download ${id}.mp4`}
+                            onClick={() => unlock('wallpaper-thief')}
+                        >⤓</a>
+                    </div>
                 ))}
             </div>
             <p className="wall-state">{wallErr ? <em>{wallErr}</em> : wall ? `Using your ${wall.kind === 'color' ? 'colour' : wall.kind}${wall.blob ? ` · ${(wall.blob.size / 1024 / 1024).toFixed(1)} MB stored` : ''}` : 'Using the bundled One Piece loop.'}</p>

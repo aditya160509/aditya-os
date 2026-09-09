@@ -246,8 +246,30 @@
 .chess-app .movelist{background:#1f1e1c;border:1px solid #3a3733;color:#d8d4cd;border-radius:4px}
 
 
-.webui-app{background:#0d0d0d;padding:0}
-.webui-frame{width:100%;height:100%;border:0;display:block;background:#0d0d0d}
+.assistant-app{background:#1a1815;padding:0}
+.assistant{display:flex;flex-direction:column;height:100%;background:#1a1815;color:#e8e4dd;font-size:14px;line-height:1.6}
+.assistant-log{flex:1;overflow-y:auto;padding:26px 30px;display:flex;flex-direction:column;gap:22px}
+.assistant-intro{margin:auto 0;text-align:center;padding:20px 10px}
+.assistant-intro h2{margin:0 0 8px;font-size:22px;font-weight:600;color:#f2ede4}
+.assistant-intro p{margin:0 auto 22px;max-width:44ch;color:#9a938a}
+.assistant-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.assistant-chips button{background:#262320;border:1px solid #3a352f;color:#cfc8bd;border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer;transition:background .15s,border-color .15s}
+.assistant-chips button:hover{background:#302c27;border-color:#544d44}
+.assistant-turn{display:flex;flex-direction:column;gap:5px}
+.assistant-who{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#8a8279}
+.assistant-turn.is-user .assistant-who{color:#c9743f}
+.assistant-text p{margin:0 0 10px}
+.assistant-text p:last-child{margin-bottom:0}
+.assistant-text strong{color:#f4efe6;font-weight:600}
+.assistant-text code{background:#2a2622;border-radius:4px;padding:1px 5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:#dcb892}
+.assistant-caret{display:inline-block;width:7px;height:15px;background:#c9743f;vertical-align:-2px;animation:assistant-blink 1s steps(2) infinite}
+@keyframes assistant-blink{0%,50%{opacity:1}50.01%,100%{opacity:0}}
+.assistant-composer{display:flex;gap:10px;padding:14px 18px;border-top:1px solid #302c27;background:#191714}
+.assistant-composer input{flex:1;background:#232019;border:1px solid #3a352f;border-radius:10px;padding:11px 14px;color:#e8e4dd;font:inherit;outline:none}
+.assistant-composer input:focus{border-color:#7a6c5c}
+.assistant-composer input::placeholder{color:#7d766d}
+.assistant-composer button{background:#c9743f;border:0;border-radius:10px;padding:0 20px;color:#1a1815;font:inherit;font-weight:600;cursor:pointer}
+.assistant-composer button:disabled{background:#3a352f;color:#7d766d;cursor:default}
 .ghostty-app{background:#0f0f0f;padding:0}
 .ghostty-frame{width:100%;height:100%;border:0;display:block;background:#0f0f0f}
 .developer-app main{min-width:0}
@@ -296,7 +318,13 @@
 .wall-label{font-size:10px;letter-spacing:1px;color:#666;text-transform:uppercase;margin-top:6px}
 .wall-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;max-height:210px;overflow-y:auto;padding:2px;background:#e6e5e1;border:1px solid #bbb}
 .wall-grid button{padding:0;border:2px solid transparent;background:#111;border-radius:3px;overflow:hidden;line-height:0;cursor:pointer}
-.wall-grid button.on{border-color:#2446a0}
+.wall-cell{position:relative;border:2px solid transparent;border-radius:3px;overflow:hidden;line-height:0}
+.wall-cell.on{border-color:#2446a0}
+.wall-cell button{border:0;border-radius:0;width:100%}
+.wall-get{position:absolute;right:3px;bottom:3px;width:18px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:3px;background:rgba(0,0,0,.62);color:#fff;font-size:11px;line-height:1;text-decoration:none;opacity:0;transition:opacity .12s}
+.wall-cell:hover .wall-get,.wall-get:focus{opacity:1}
+.wall-get:hover{background:#2446a0}
+.wall-label small{color:#555;font-weight:400}
 .wall-grid img{width:100%;height:56px;object-fit:cover;display:block}
 
 /* Deluxe Saloon-inspired radio player using the supplied reference artwork. */

@@ -28,7 +28,7 @@ Three.js shell is bundled into `site/outer/public`.
 
 | App | Built on |
 |---|---|
-| Open WebUI | `open-webui/open-webui` (BSD-3), built from source, boot endpoints served locally |
+| Assistant | local answer corpus with streamed replies — no model, no network |
 | Markets | lightweight-charts + indicator math ported from OpenCharts (EMA / RSI / MACD), paper trading |
 | VS Code | Monaco editor, local autosave |
 | Ghostty | `zerebos/ghostty-config` (MIT), built from source |

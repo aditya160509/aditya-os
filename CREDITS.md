@@ -13,3 +13,10 @@ Please check out Henry’s work and give him a well-deserved shoutout:
 - Website: [henryheffernan.com](https://henryheffernan.com/)
 
 This project is a personal reskin and variation, not the original portfolio. Full credit and thanks to Henry for the inspiration and source work.
+
+## Naresh Khatri
+
+The personal site at `/portfolio` is a fork of [Naresh-Khatri/3d-portfolio](https://github.com/Naresh-Khatri/3d-portfolio), rebuilt with my own writing, projects and research. Its live-cursor and visitor-chat layer, the radial reaction menu, the elastic cursor and the scroll-driven reveals are his design and his code — I swapped the content and wrote a replacement socket relay (`presence/`), but the interaction work is his.
+
+- Repository: [Naresh-Khatri/3d-portfolio](https://github.com/Naresh-Khatri/3d-portfolio)
+- GitHub profile: [@Naresh-Khatri](https://github.com/Naresh-Khatri)

@@ -9,6 +9,9 @@ import { ReactNode } from "react";
 // Spline has no thesvg entry — keep the Three.js mark as its stand-in.
 import { SiThreedotjs } from "react-icons/si";
 const BASE_PATH = "/portfolio/assets/projects-screenshots";
+// Loops rendered for the original product sites, re-encoded to 960p/24fps for
+// the card previews and self-hosted so nothing depends on the CDN they came from.
+const VIDEO_PATH = "/portfolio/assets/projects-video";
 
 // Renders a brand SVG from /public as a monochrome glyph that inherits the
 // surrounding text color (the skill dock styles every icon via currentColor),
@@ -192,6 +195,8 @@ export type Project = {
   title: string;
   src: string;
   screenshots: string[];
+  /** Optional looping preview shown on the card instead of the still. */
+  video?: string;
   skills: { frontend: Skill[]; backend: Skill[] };
   content: React.ReactNode | any;
   github?: string;
@@ -202,7 +207,8 @@ const projects: Project[] = [
     id: "atlas",
     category: "Quantitative research platform",
     title: "ATLAS · QUANT360",
-    src: `${BASE_PATH}/atlas/landing.png`,
+    src: `${VIDEO_PATH}/atlas.jpg`,
+    video: `${VIDEO_PATH}/atlas.mp4`,
     screenshots: ["landing.png"],
     skills: {
       frontend: [PROJECT_SKILLS.next, PROJECT_SKILLS.ts, PROJECT_SKILLS.react, PROJECT_SKILLS.tailwind],
@@ -246,7 +252,8 @@ const projects: Project[] = [
     id: "nexus",
     category: "Agent-based simulation",
     title: "NEXUS Exchange",
-    src: `${BASE_PATH}/nexus/landing.png`,
+    src: `${VIDEO_PATH}/nexus.jpg`,
+    video: `${VIDEO_PATH}/nexus.mp4`,
     screenshots: ["landing.png"],
     skills: {
       frontend: [PROJECT_SKILLS.ts, PROJECT_SKILLS.react],
@@ -328,7 +335,8 @@ const projects: Project[] = [
     id: "daedalus",
     category: "Engineering platform",
     title: "Daedalus",
-    src: `${BASE_PATH}/daedalus/landing.png`,
+    src: `${VIDEO_PATH}/daedalus.jpg`,
+    video: `${VIDEO_PATH}/daedalus.mp4`,
     screenshots: ["landing.png"],
     skills: {
       frontend: [PROJECT_SKILLS.next, PROJECT_SKILLS.ts, PROJECT_SKILLS.react, PROJECT_SKILLS.spline, PROJECT_SKILLS.tailwind],

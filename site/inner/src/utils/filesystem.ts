@@ -53,7 +53,7 @@ export const FS_ROOT: FSNode = {
                 {
                     name: 'aditya-os', kind: 'dir', desc: 'This workstation', children: [
                         T('README.txt', 'ADITYA-OS\n=========\n\nThis interactive workstation: 3D desk, working desktop\nOS, paper-trading terminal, games and apps.\n\nStack: React · Three.js · TypeScript · Vela charts'),
-                        T('colophon.txt', 'Colophon\n--------\n3D shell reskinned from an open reference scene.\nCharts: lightweight-charts + OpenCharts indicator math.\nChess: lichess chessground (GPL-3) + chess.js (MIT).\nMinesweeper: nickarocho. Solitaire: scarolan/klondike.\nTetris + Pong: straker basic-html-games (CC0).\nWordle: modem7/react-wordle (MIT).\nAI desk: open-webui (BSD-3). Terminal config: ghostty-config.\nDOS games: js-dos + DOSBox. Radio: radio-browser.info.'),
+                        T('colophon.txt', 'Colophon\n--------\n3D shell reskinned from an open reference scene.\nCharts: lightweight-charts + OpenCharts indicator math.\nChess: lichess chessground (GPL-3) + chess.js (MIT).\nMinesweeper: nickarocho. Solitaire: scarolan/klondike.\nTetris + Pong: straker basic-html-games (CC0).\nWordle: modem7/react-wordle (MIT).\nTerminal config: ghostty-config. Assistant: local, no model.\nDOS games: js-dos + DOSBox. Radio: radio-browser.info.'),
                     ],
                 },
             ],

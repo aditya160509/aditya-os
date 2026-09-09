@@ -17,6 +17,8 @@ export const ACHIEVEMENTS: Achievement[] = [
     { id: 'shell-user', name: 'Shell user', hint: 'Run a command in the terminal.' },
     { id: 'decorator', name: 'Interior decorator', hint: 'Change the wallpaper.' },
     { id: 'researcher', name: 'Read the papers', hint: 'Open a research note in the file system.' },
+    { id: 'curious', name: 'Curious', hint: 'Ask the assistant something.' },
+    { id: 'wallpaper-thief', name: 'Take it with you', hint: 'Download a wallpaper.' },
     { id: 'konami', name: 'Up, up, down, down…', hint: 'Some codes never expire.', secret: true },
     { id: 'sudo', name: 'Root access', hint: 'Ask the terminal for what it will not give you.', secret: true },
     { id: 'night-owl', name: 'Night owl', hint: 'Visit between 1am and 5am.', secret: true },
