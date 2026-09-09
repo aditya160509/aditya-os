@@ -1,0 +1,225 @@
+# WORK.md — everything still to do
+
+Written 2026-09-09. Each item says **what**, **why**, **how** and **where**.
+Ordered so a session can start at the top and work down.
+
+Repo layout, for reference:
+
+| Path | What it is |
+|---|---|
+| `site/outer` | Three.js CRT shell + Express server. Serves everything. |
+| `site/inner` | The React desktop (windows, apps, games). Staged to `/desktop`. |
+| `site/portfolio` | Next.js personal site (fork of Naresh-Khatri/3d-portfolio). Staged to `/portfolio`. |
+| `presence/` | socket.io relay. Deployed on Render, live. |
+| `<project>.md` | The original frontend build prompt for each project, with its real media URLs. |
+
+Build everything: `npm run build` from the repo root. It runs inner → stage → portfolio → stage → outer, in that order. **Staging writes to `site/outer/static`; only the outer webpack build copies that into `site/outer/public`, which is what the server serves.** Rebuilding only the portfolio and re-staging will look like nothing changed — run the outer build too.
+
+---
+
+## 1. Delete 48 MB of dead assets
+
+**Why:** it ships to every visitor's deploy and sits in the repo for nothing.
+
+| Path | Size | Evidence it is unused |
+|---|---|---|
+| `site/outer/static/textures/monitor/video/real.mp4` | 37 MB | no reference in `site/outer/src` or `index.html` |
+| `site/outer/static/textures/monitor/layers/png/` | 11 MB | `sources.ts` only loads `layers/compressed/` |
+
+**How:**
+```bash
+rm -f site/outer/static/textures/monitor/video/real.mp4
+rm -rf site/outer/static/textures/monitor/layers/png
+grep -rn "real.mp4\|layers/png" site/outer/src site/outer/server   # must return nothing
+npm run build
+```
+Keep `base-static.mp4` and `static-texture-layer.mp4` — both are referenced from `site/outer/src/index.html:138-141`.
+
+---
+
+## 2. Remove the GitHub stars button
+
+**Why:** it reads `0` and is a leftover from the fork.
+
+**Where:**
+- `site/portfolio/src/components/header/header.tsx` — remove the `<GithubStarsButton>` usage
+- `site/portfolio/src/components/ui/shadcn-io/github-stars-button/` — delete
+- `site/portfolio/src/actions/github-stars.ts` — delete
+
+Check nothing else imports them: `grep -rn "github-stars\|GithubStars" site/portfolio/src`
+
+---
+
+## 3. Update the site menu
+
+**Why:** the nav still has the fork's sections, and no Research entry even though Research is now the strongest section.
+
+**Where:** `site/portfolio/src/components/header/config.ts`
+
+Target list: Home · About · Projects · **Research** · Blogs · Contact. Drop Skills as a top-level entry (the skills dock lives inside the page anyway) or keep it — but Research must be there, pointing at `/#research`.
+
+Each entry has a `thumbnail` under `public/assets/nav-link-previews/`. A new Research entry needs one — screenshot the section and save it as `research.png`, same dimensions as the existing files.
+
+---
+
+## 4. Wire the remaining project videos
+
+**Why:** four of seven project cards still show generated art. You have now added the prompt files.
+
+**Available now:**
+
+| Project | Prompt file | Media |
+|---|---|---|
+| Glassbox | `glassbox.md` | `hf_20260508_215831_c6a8989c-....mp4` |
+| PhenoSync | `phenosync.md` | two **PNG** stills (`hf_20260808_192942_...`, `hf_20260808_151324_...`) — no video |
+
+**How** (same pipeline already used for atlas/nexus/daedalus):
+```bash
+curl -sL -o /tmp/glassbox.mp4 "<url from glassbox.md>"
+ffmpeg -y -i /tmp/glassbox.mp4 -t 12 -vf "scale=960:-2:flags=lanczos,fps=24" \
+  -c:v libx264 -preset slow -crf 27 -movflags +faststart -an \
+  site/portfolio/public/assets/projects-video/glassbox.mp4
+ffmpeg -y -i site/portfolio/public/assets/projects-video/glassbox.mp4 \
+  -frames:v 1 -q:v 3 site/portfolio/public/assets/projects-video/glassbox.jpg
+```
+Then in `site/portfolio/src/data/projects.tsx` set `src: \`${VIDEO_PATH}/glassbox.jpg\`` and `video: \`${VIDEO_PATH}/glassbox.mp4\``.
+
+For PhenoSync, download the two PNGs into `public/assets/projects-screenshots/phenosync/` and use them as `src` + `screenshots` — do **not** invent a video it doesn't have.
+
+Future Lab and AdityaOS still have no prompt file. Leave their generated art until one exists.
+
+---
+
+## 5. Rewrite the project descriptions
+
+**Why:** your words, in the modal: *"there is no detail inside the url just plain"* and *"remove honest data bullshit"*.
+
+**Where:** `site/portfolio/src/data/projects.tsx`, the `get content()` block of each project.
+
+Two changes:
+
+**a. Delete the "Honest data" heading and its paragraph** from the ATLAS entry. The survivorship-bias / free-sources framing reads defensively. Fold anything worth keeping into the body text without the heading.
+
+**b. Expand every description.** Each project's `.md` prompt file contains the real copy from the original site — section headings, feature lists, the actual product language. Read the prompt file and rewrite the modal content from it, keeping your metrics. Aim for three or four real sections per project, not one paragraph.
+
+Sources: `atlas.md`, `nexus.md`, `daedulus.md`, `glassbox.md`, `phenosync.md`.
+
+---
+
+## 6. Make the project modal a real preview
+
+**Why:** two problems, both visible in the screenshots — the modal doesn't scroll to the video, and there is no signal that this is a preview of a real site rather than the site itself.
+
+**What to build:**
+
+1. **A scrollable preview pane.** The modal already has a `ScrollArea`; the video sits in the card behind it and is never reachable once open. Put the loop at the top of the modal body, above the copy, so opening a project shows the motion first.
+
+2. **Label it.** A caption under the media: *"Preview of the live site"*, plus the Visit Website button that already exists. Right now a visitor can't tell whether they're looking at a screenshot, a video, or an embed.
+
+3. **Optional, higher effort — build the real thing.** Each `.md` is a complete, self-contained build spec (stack, fonts, colours, exact copy, exact media URLs). Any one could be built as a static page and served under `/portfolio/preview/<id>/`, then embedded in the modal as an iframe. That turns "here's a video of a site" into "here's the site". Do this for one project first (Daedalus is the most cinematic) and judge whether it's worth repeating.
+
+**Where:** `site/portfolio/src/components/sections/projects.tsx` (`ProjectCard`, `ProjectLoop`).
+
+---
+
+## 7. Sprite picker + cursor-following pet
+
+**Why:** you asked for a choice of sprites and for the pet to move toward the cursor.
+
+**Where:** `site/inner/src/components/os/DesktopPet.tsx`, sprites in `site/inner/public/assets/pet/`.
+
+**Current state:** 8 Hermes frames, wanders, and follows the cursor only within a 170px radius — which is why it looks like it ignores you.
+
+**Do:**
+1. **Widen the follow.** Raise the radius to roughly a third of the viewport, and make it approach continuously rather than only when close. Keep an idle/nap state so it isn't glued to the pointer.
+2. **Add a picker.** Put a "Desktop pet" section in Settings → Desktop with a sprite grid, storing the choice in `localStorage` under `aditya-pet`. Support "None" so it can be turned off.
+3. **Add sprite sets.** Organise as `public/assets/pet/<set>/pet-N.png`. Hermes is set one. Any additional set must be a licence-clean source — record it in `CREDITS.md` next to the existing `LICENSE-hermes.txt`, as was done for the Hermes frames.
+
+---
+
+## 8. Rebuild the Assistant as a real Claude-style UI
+
+**Why:** the current one is a plain log with a text box. You asked for the full interface.
+
+**Where:** `site/inner/src/components/applications/StudioApps.tsx` (`ClaudeApp`), styles in `StudioApps.css` under `.assistant`.
+
+**Keep:** no model, no network — every reply comes from the local corpus. That constraint is the honest part and should stay.
+
+**Add, in rough order of impact:**
+- **Conversation sidebar** — named past chats, new-chat button, stored in `localStorage`. Seed it with two or three pre-written conversations so it doesn't open empty.
+- **Message chrome** — avatars, copy button per reply, thumbs up/down, regenerate.
+- **Markdown rendering** — headings, lists, tables, and syntax-highlighted code blocks. The corpus already contains formatting the current renderer flattens.
+- **Streaming polish** — a stop button while generating, and a thinking indicator before the first token.
+- **Artifacts panel** — a right-hand pane that renders a code block or a chart the reply refers to. This is the detail that sells it.
+- **Input affordances** — attach button (inert but present), model picker showing "Local corpus", token/character count.
+
+Grow the corpus in the same file — it is a list of `{ match: RegExp, reply: string }`. More entries make it feel less canned.
+
+---
+
+## 9. Make downloads discoverable
+
+**Why:** your words — *"there is no option to download like i wouldn't know how to download"*.
+
+**Two separate things, both currently hidden:**
+
+**a. Wallpapers.** The ⤓ button on each tile only appears on hover, and there is no hover on touch. Fix in `site/inner/src/components/applications/StudioApps.css`: make `.wall-get` always visible at reduced opacity instead of `opacity: 0`. Add a line of copy above the grid saying the files can be saved.
+
+**b. Installing the app.** The install button sits in the desktop and most visitors never see it. Add a visible entry point — a Start-menu item, and a one-time prompt after a visitor has been active for a minute. Copy should say what installing gets them (own window, no browser chrome, offline shell).
+
+---
+
+## 10. The six platform features
+
+From the earlier list. All are in `site/outer/static/manifest.webmanifest` and `site/outer/static/sw.js` unless noted.
+
+1. **File handlers** — register `.txt`/`.md`/`.json` via the manifest `file_handlers` field so double-clicking one on the real desktop opens it in the in-OS Notepad. Needs a `launchQueue.setConsumer` handler in the inner app to receive the file. Biggest "it's a real app" moment.
+2. **File System Access API** — let Explorer open and save real files through a picker (`showOpenFilePicker` / `showSaveFilePicker`). Chromium only; feature-detect and hide the buttons elsewhere.
+3. **Share target** — manifest `share_target`, so a link shared from a phone opens in the in-OS browser.
+4. **Protocol handler** — manifest `protocol_handlers` for `web+adityaos://`, routed to open a named app.
+5. **App badge** — `navigator.setAppBadge(n)` with the count of locked achievements, cleared when all are unlocked.
+6. **Selective offline** — precache the games and Monaco (a few MB) in `sw.js` so Minesweeper, Solitaire, Tetris, Pong and the editor work with no connection. Video, models and wasm stay excluded — that exclusion is deliberate and must not be removed.
+7. **Wake lock** — `navigator.wakeLock.request('screen')` while a game or the radio is playing; release on window close or blur.
+
+---
+
+## 11. Delete the Explorer app
+
+**Why:** you asked for it. It duplicates the file system the Terminal already exposes.
+
+**Where:** `site/inner/src/components/os/Desktop.tsx` (its entry in the app list), its component in `site/inner/src/components/applications/`, and its styles. Leave `site/inner/src/utils/filesystem.ts` alone — the Terminal depends on it.
+
+Afterwards, check the achievement count in the tray still adds up and that `noteAppOpened`'s "open every application" achievement isn't now unreachable.
+
+> If you meant "delete the stale planning `.md` files" instead, those are `IMPLEMENTATION.md`, `TASK-LOG.md`, `ASSET-INVENTORY.md`, `PROJECT-BRIEF.md`, `FULL-LIVE-SITE-REVERSE-ENGINEERING-SPEC.md` — all superseded. Say which you meant.
+
+---
+
+## 12. The four bigger pieces
+
+Deliberately last: each is a day of work, not an hour.
+
+**a. Mobile.** The single biggest gap. Everything assumes a mouse at 1280px. On a phone there is no hover (project loops and the elastic cursor do nothing), windows are drag-resized, and the 3D shell is heavy. The fix is not responsive CSS — it is a different presentation: apps as a launcher grid, full-screen one at a time, no window chrome. Detect with `(hover: none)` and `(max-width: 768px)`.
+
+**b. First-run cue.** A visitor lands on a dark room with a CRT and no idea the monitor is clickable or that twenty apps are inside. A five-second cue — a pulse on the screen, one line of text — converts more visitors than any new feature.
+
+**c. Per-paper pages.** The three papers are download-only. Give each a route under `/portfolio/research/<slug>` with the abstract, key figures (they exist as PNGs in the source repos), and the PDF link. Makes the research readable and gives search engines something.
+
+**d. OG images.** No link preview anywhere. Add per-route OG images and metadata in `site/portfolio/src/app/layout.tsx` and the outer `index.html`. The desktop is JS-rendered, so crawlers currently see almost nothing.
+
+---
+
+## Standing constraints
+
+- **Never re-encode the 88 wallpapers.** They took hours and are final.
+- **Nothing about a visitor leaves their device** — wallpapers and achievements are local; the presence relay stores no account, IP, geolocation or history. The fork's analytics beacon was removed for exactly this reason; do not reintroduce anything like it.
+- **Vendor real upstream code** rather than reimplementing it, and credit it in `CREDITS.md`.
+- **Media stays out of the service worker cache.** The exclusion in `sw.js` is intentional.
+
+## Done, for context
+
+Papers section and three PDFs · project loops for atlas/nexus/daedalus · Settings rebuilt · Open WebUI deleted (66 MB) · native Assistant · presence relay live on Render · PWA manifest, screenshots, maskable icon, offline page · wallpaper downloads · desktop pet · achievements · analytics beacon removed.
+
+## One thing still needing your GitHub login
+
+Copy `presence/keepalive.github-workflow.yml` to `.github/workflows/presence-keepalive.yml` through the GitHub web UI. It cannot be pushed from the CLI — the token lacks `workflow` scope. Without it, Render idles the relay after ~15 minutes and the first visitor waits about a minute for cursors.
