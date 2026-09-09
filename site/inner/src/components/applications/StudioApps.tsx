@@ -1048,7 +1048,8 @@ export const SettingsApp: React.FC<Props> = (props) => {
                             <section>
                                 <h3>Wallspace library</h3>
                                 <p className="w95-note">
-                                    {BUILTIN_COUNT} loops. Click to apply, ⤓ to keep the file.
+                                    {BUILTIN_COUNT} loops. Click one to apply it, or hit ⤓ on the
+                                    corner to download the MP4 and keep it.
                                 </p>
                                 <div className="wall-grid">
                                     {Array.from({ length: BUILTIN_COUNT }, (_, i) => builtinId(i + 1)).map((id) => (

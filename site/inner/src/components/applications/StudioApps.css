@@ -388,7 +388,7 @@
 .wall-cell{position:relative;border:2px solid transparent;border-radius:3px;overflow:hidden;line-height:0}
 .wall-cell.on{border-color:#2446a0}
 .wall-cell button{border:0;border-radius:0;width:100%}
-.wall-get{position:absolute;right:3px;bottom:3px;width:18px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:3px;background:rgba(0,0,0,.62);color:#fff;font-size:11px;line-height:1;text-decoration:none;opacity:0;transition:opacity .12s}
+.wall-get{position:absolute;right:3px;bottom:3px;width:19px;height:19px;display:flex;align-items:center;justify-content:center;border-radius:3px;background:rgba(0,0,0,.66);color:#fff;font-size:11px;line-height:1;text-decoration:none;opacity:.72;transition:opacity .12s,background .12s}
 .wall-cell:hover .wall-get,.wall-get:focus{opacity:1}
 .wall-get:hover{background:#2446a0}
 .wall-label small{color:#555;font-weight:400}
