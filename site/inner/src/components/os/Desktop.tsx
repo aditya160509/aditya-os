@@ -17,7 +17,6 @@ import InstallButton from './InstallButton';
 // requested lazily by the app itself.
 const lazyDefault = (load: () => Promise<{ default: React.ComponentType<any> }>) => React.lazy(load);
 const Doom = lazyDefault(() => import('../applications/Doom'));
-const OregonTrail = lazyDefault(() => import('../applications/OregonTrail'));
 const Henordle = lazyDefault(() => import('../applications/Henordle'));
 const Notepad = lazyDefault(() => import('../applications/Notepad'));
 const Paint = lazyDefault(() => import('../applications/Paint'));
@@ -26,8 +25,6 @@ const Calculator = lazyDefault(() => import('../applications/Calculator'));
 const Snake = lazyDefault(() => import('../applications/Snake'));
 const ChessGame = lazyDefault(() => import('../applications/ChessGame'));
 const GetApp = lazyDefault(() => import('../applications/GetApp'));
-const Scrabble = lazyDefault(() => import('../applications/Scrabble'));
-const Digger = lazyDefault(() => import('../applications/Digger'));
 const MinesweeperApp = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.MinesweeperApp })));
 const SolitaireApp = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.SolitaireApp })));
 const TetrisApp = lazyDefault(() => import('../applications/VendorGame').then((m) => ({ default: m.TetrisApp })));
@@ -37,7 +34,6 @@ const Game2048App = lazyDefault(() => import('../applications/VendorGame').then(
 const PortfolioApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.PortfolioApp })));
 const ClaudeApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.ClaudeApp })));
 const TradingApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.TradingApp })));
-const SpotifyApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.SpotifyApp })));
 const ChromeApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.ChromeApp })));
 const TerminalApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.TerminalApp })));
 const DeveloperApp = lazyDefault(() => import('../applications/StudioApps').then((m) => ({ default: m.DeveloperApp })));
@@ -73,9 +69,6 @@ const APPLICATIONS: {
     trading: {
         key: 'trading', name: 'Markets', shortcutIcon: 'trading', component: TradingApp,
     },
-    spotify: {
-        key: 'spotify', name: 'Spotify', shortcutIcon: 'spotify', component: SpotifyApp,
-    },
     chrome: {
         key: 'chrome', name: 'Chrome', shortcutIcon: 'chrome', component: ChromeApp,
     },
@@ -88,35 +81,17 @@ const APPLICATIONS: {
     settings: {
         key: 'settings', name: 'Settings', shortcutIcon: 'settings', component: SettingsApp,
     },
-    trail: {
-        key: 'trail',
-        name: 'The Oregon Trail',
-        shortcutIcon: 'trailIcon',
-        component: OregonTrail,
-    },
     doom: {
         key: 'doom',
         name: 'Doom',
         shortcutIcon: 'doomIcon',
         component: Doom,
     },
-    scrabble: {
-        key: 'scrabble',
-        name: 'Scrabble',
-        shortcutIcon: 'scrabbleIcon',
-        component: Scrabble,
-    },
     henordle: {
         key: 'henordle',
         name: 'Aditya Wordle',
         shortcutIcon: 'henordleIcon',
         component: Henordle,
-    },
-    digger: {
-        key: 'digger',
-        name: 'Digger',
-        shortcutIcon: 'windowGameIcon',
-        component: Digger,
     },
     radio: {
         key: 'radio',

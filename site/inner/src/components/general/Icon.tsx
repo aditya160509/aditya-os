@@ -9,7 +9,7 @@ export interface IconProps {
 
 const Icon: React.FC<IconProps> = ({ icon, style, size }) => {
     const isBrandIcon = [
-        'openai', 'claude', 'chrome', 'safari', 'spotify', 'github', 'python',
+        'openai', 'claude', 'chrome', 'safari', 'github', 'python',
         'apple', 'google', 'figma', 'microsoft', 'meta', 'amazon', 'slack',
         'swift', 'nodejs', 'cloud', 'trading', 'terminal', 'settings', 'portfolio'
     ].includes(icon);

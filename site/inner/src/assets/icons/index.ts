@@ -10,17 +10,14 @@ import henordleIcon from './henordleIcon.png';
 import credits from './credits.png';
 import volumeOn from './volumeOn.png';
 import volumeOff from './volumeOff.png';
-import trailIcon from './trailIcon.png';
 import windowGameIcon from './windowGameIcon.png';
 import windowExplorerIcon from './windowExplorerIcon.png';
 import windowsStartIcon from './windowsStartIcon.png';
-import scrabbleIcon from './scrabbleIcon.png';
 import close from './close.png';
 import openai from './brands/openai.svg';
 import claude from './brands/claude.svg';
 import chrome from './brands/chrome.svg';
 import safari from './brands/safari.svg';
-import spotify from './brands/spotify.svg';
 import github from './brands/github.svg';
 import python from './brands/python.svg';
 import nodejs from './brands/nodejs.svg';
@@ -57,18 +54,15 @@ const icons = {
     volumeOn: volumeOn,
     volumeOff: volumeOff,
     credits: credits,
-    scrabbleIcon: scrabbleIcon,
     henordleIcon: henordleIcon,
     close: close,
     windowGameIcon: windowGameIcon,
     windowExplorerIcon: windowExplorerIcon,
     windowsStartIcon: windowsStartIcon,
-    trailIcon: trailIcon,
     openai,
     claude,
     chrome,
     safari,
-    spotify,
     github,
     python,
     nodejs,

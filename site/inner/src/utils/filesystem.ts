@@ -68,10 +68,7 @@ export const FS_ROOT: FSNode = {
         },
         {
             name: 'Games', kind: 'dir', desc: 'Double-click to play', children: [
-                A('Oregon Trail', 'trail', 'DOS original'),
                 A('Doom', 'doom', 'DOS original'),
-                A('Digger', 'digger', 'DOS classic'),
-                A('Scrabble', 'scrabble', 'Built-in'),
                 A('Aditya Wordle', 'henordle', 'Daily word'),
                 A('Minesweeper', 'minesweeper', 'Classic 9x9'),
                 A('Snake', 'snake', 'Arcade'),
