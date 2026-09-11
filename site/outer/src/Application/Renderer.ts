@@ -3,7 +3,6 @@ import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import Application from './Application';
 import Sizes from './Utils/Sizes';
 import Camera from './Camera/Camera';
-import UIEventBus from './UI/EventBus';
 // @ts-ignore
 import screenVert from './Shaders/screen/vertex.glsl';
 // @ts-ignore
@@ -19,7 +18,6 @@ export default class Renderer {
     overlay: THREE.Mesh;
     overlayScene: THREE.Scene;
     camera: Camera;
-    overlayInstance: THREE.WebGLRenderer;
     instance: THREE.WebGLRenderer;
     cssInstance: CSS3DRenderer;
     raiseExposure: boolean;
@@ -62,36 +60,17 @@ export default class Renderer {
             alpha: true,
             powerPreference: lowPower ? 'low-power' : 'high-performance',
         });
-        // Settings
-        // this.instance.physicallyCorrectLights = true;
         this.instance.outputEncoding = THREE.sRGBEncoding;
-        // this.instance.toneMapping = THREE.ACESFilmicToneMapping;
-        // this.instance.toneMappingExposure = 0.9;
         this.instance.setSize(this.sizes.width, this.sizes.height);
         this.instance.setPixelRatio(this.targetPixelRatio());
         this.instance.setClearColor(0x000000, 0.0);
+        this.instance.autoClear = false;
 
-        // Style
         this.instance.domElement.style.position = 'absolute';
-        this.instance.domElement.style.zIndex = '1px';
+        this.instance.domElement.style.zIndex = '1';
         this.instance.domElement.style.top = '0px';
 
         document.querySelector('#webgl')?.appendChild(this.instance.domElement);
-
-        this.overlayInstance = new THREE.WebGLRenderer({ antialias: false });
-        this.overlayInstance.setPixelRatio(this.targetPixelRatio());
-        this.overlayInstance.setSize(this.sizes.width, this.sizes.height);
-        this.overlayInstance.domElement.style.position = 'absolute';
-        this.overlayInstance.domElement.style.top = '0px';
-        this.overlayInstance.domElement.style.mixBlendMode = 'soft-light';
-        this.overlayInstance.domElement.style.opacity = '0.12';
-        // this.overlayInstance.domElement.style.mixBlendMode = 'luminosity';
-        // this.overlayInstance.domElement.style.opacity = '1';
-        this.overlayInstance.domElement.style.pointerEvents = 'none';
-
-        document
-            .querySelector('#overlay')
-            ?.appendChild(this.overlayInstance.domElement);
 
         this.cssInstance = new CSS3DRenderer();
         this.cssInstance.setSize(this.sizes.width, this.sizes.height);
@@ -112,6 +91,9 @@ export default class Renderer {
                 vertexShader: screenVert,
                 fragmentShader: screenFrag,
                 uniforms: this.uniforms,
+                transparent: true,
+                opacity: 0.12,
+                blending: THREE.SoftLightBlending,
                 depthTest: false,
                 depthWrite: false,
             })
@@ -123,11 +105,7 @@ export default class Renderer {
     resize() {
         this.instance.setSize(this.sizes.width, this.sizes.height);
         this.instance.setPixelRatio(this.targetPixelRatio());
-
         this.cssInstance.setSize(this.sizes.width, this.sizes.height);
-
-        this.overlayInstance.setSize(this.sizes.width, this.sizes.height);
-        this.overlayInstance.setPixelRatio(this.targetPixelRatio());
     }
 
     update() {
@@ -136,9 +114,27 @@ export default class Renderer {
             this.uniforms.u_time.value = Math.sin(this.time.current * 0.01);
         }
 
-        this.instance.render(this.scene, this.camera.instance);
-        this.cssInstance.render(this.cssScene, this.camera.instance);
-        this.overlayInstance.render(this.overlayScene, this.camera.instance);
         this.overlay.position.copy(this.camera.instance.position);
+
+        this.instance.clear();
+        this.instance.render(this.scene, this.camera.instance);
+        this.instance.clearDepth();
+        this.instance.render(this.overlayScene, this.camera.instance);
+        this.cssInstance.render(this.cssScene, this.camera.instance);
+    }
+
+    destroy() {
+        this.overlay.geometry.dispose();
+        const overlayMaterial = this.overlay.material;
+        if (Array.isArray(overlayMaterial)) {
+            overlayMaterial.forEach((material) => material.dispose());
+        } else {
+            overlayMaterial.dispose();
+        }
+        this.overlayScene.remove(this.overlay);
+
+        this.instance.dispose();
+        this.instance.domElement.remove();
+        this.cssInstance.domElement.remove();
     }
 }
