@@ -1,0 +1,25 @@
+name: verify keyboard build
+
+on:
+  push:
+    branches:
+      - feat/typefast-keyboard-performance
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            site/inner/package-lock.json
+            site/outer/package-lock.json
+            site/portfolio/package-lock.json
+            site/vscode/package-lock.json
+      - run: npm ci
+      - run: npm run install:all
+      - run: npm run build
