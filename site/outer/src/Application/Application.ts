@@ -114,9 +114,9 @@ export default class Application {
     destroy() {
         this.sizes.off('resize');
         this.time.destroy();
+        this.resources.destroy();
 
         this.disposeScene(this.scene);
-        this.disposeScene(this.overlayScene);
         this.renderer.destroy();
 
         this.stats?.dom.remove();
