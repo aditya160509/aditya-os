@@ -2,11 +2,13 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import Application from '../Application';
+import UIEventBus from '../UI/EventBus';
 import EventEmitter from './EventEmitter';
 import Loading from './Loading';
 
 export default class Resources extends EventEmitter {
     sources: Resource[];
+    // Not sure about this one
     items: {
         texture: { [name: string]: LoadedTexture };
         cubeTexture: { [name: string]: LoadedCubeTexture };
@@ -29,6 +31,7 @@ export default class Resources extends EventEmitter {
         super();
 
         this.sources = sources;
+
         this.items = { texture: {}, cubeTexture: {}, gltfModel: {}, audio: {} };
         this.toLoad = this.sources.length;
         this.loaded = 0;
@@ -40,10 +43,10 @@ export default class Resources extends EventEmitter {
     }
 
     setLoaders() {
+        // The replacement keyboard is a Draco-compressed glb. The decoder files
+        // are copied out of the installed three package at build time, so this
+        // stays self-contained rather than reaching for a CDN.
         const dracoLoader = new DRACOLoader();
-        // Decoder files are copied from the installed Three.js package at build
-        // time, so the keyboard remains self-contained and does not depend on a
-        // third-party CDN at runtime.
         dracoLoader.setDecoderPath('draco/');
         dracoLoader.setDecoderConfig({ type: 'wasm' });
 
@@ -60,6 +63,7 @@ export default class Resources extends EventEmitter {
     }
 
     startLoading() {
+        // Load each source
         for (const source of this.sources) {
             if (source.type === 'gltfModel') {
                 this.loaders.gltfLoader.load(source.path, (file) => {
@@ -84,6 +88,7 @@ export default class Resources extends EventEmitter {
 
     sourceLoaded(source: Resource, file: LoadedResource) {
         this.items[source.type][source.name] = file;
+
         this.loaded++;
 
         this.loading.trigger('loadedSource', [
@@ -95,9 +100,5 @@ export default class Resources extends EventEmitter {
         if (this.loaded === this.toLoad) {
             this.trigger('ready');
         }
-    }
-
-    destroy() {
-        this.loaders.dracoLoader.dispose();
     }
 }

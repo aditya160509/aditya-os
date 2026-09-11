@@ -37,12 +37,18 @@ export default class Application {
     stats: Stats | undefined;
 
     constructor() {
+        // Singleton
         if (instance) {
             return instance;
         }
 
         instance = this;
 
+        // Global access
+        //@ts-ignore
+        // window.Application = this;
+
+        // Setup
         this.debug = new Debug();
         this.sizes = new Sizes();
         this.mouse = new Mouse();
@@ -67,10 +73,12 @@ export default class Application {
             document.body.appendChild(this.stats.dom);
         }
 
+        // Resize event
         this.sizes.on('resize', () => {
             this.resize();
         });
 
+        // Time tick event
         this.time.on('tick', () => {
             this.update();
         });
@@ -89,39 +97,30 @@ export default class Application {
         if (this.stats) this.stats.end();
     }
 
-    private disposeScene(scene: THREE.Scene) {
-        scene.traverse((child) => {
-            if (!(child instanceof THREE.Mesh)) return;
+    destroy() {
+        this.sizes.off('resize');
+        this.time.off('tick');
 
-            child.geometry?.dispose();
-            const materials = Array.isArray(child.material)
-                ? child.material
-                : [child.material];
+        // Traverse the whole scene
+        this.scene.traverse((child) => {
+            // Test if it's a mesh
+            if (child instanceof THREE.Mesh) {
+                child.geometry.dispose();
 
-            materials.forEach((material) => {
-                if (!material) return;
-                for (const key in material) {
-                    const value = material[key];
+                // Loop through the material properties
+                for (const key in child.material) {
+                    const value = child.material[key];
+
+                    // Test if there is a dispose function
                     if (value && typeof value.dispose === 'function') {
                         value.dispose();
                     }
                 }
-                material.dispose();
-            });
+            }
         });
-    }
 
-    destroy() {
-        this.sizes.off('resize');
-        this.time.destroy();
-        this.resources.destroy();
+        this.renderer.instance.dispose();
 
-        this.disposeScene(this.scene);
-        this.renderer.destroy();
-
-        this.stats?.dom.remove();
         if (this.debug.active) this.debug.ui.destroy();
-
-        instance = null;
     }
 }
