@@ -5,6 +5,11 @@ const sources: Resource[] = [
         path: 'models/Computer/computer_setup.glb',
     },
     {
+        name: 'typefastKeyboardModel',
+        type: 'gltfModel',
+        path: 'models/Computer/typefast-keyboard.glb',
+    },
+    {
         name: 'computerSetupTexture',
         type: 'texture',
         path: 'models/Computer/baked_computer.jpg',
