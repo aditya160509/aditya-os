@@ -1,6 +1,8 @@
+import * as THREE from 'three';
 import Application from '../Application';
 import Resources from '../Utils/Resources';
 import ComputerSetup from './Computer';
+import Keyboard from './Keyboard';
 import MonitorScreen from './MonitorScreen';
 import Environment from './Environment';
 import Decor from './Decor';
@@ -8,15 +10,16 @@ import CoffeeSteam from './CoffeeSteam';
 import Cursor from './Cursor';
 import Hitboxes from './Hitboxes';
 import AudioManager from '../Audio/AudioManager';
+
 export default class World {
     application: Application;
     scene: THREE.Scene;
     resources: Resources;
 
-    // Objects in the scene
     environment: Environment;
     decor: Decor;
     computerSetup: ComputerSetup;
+    keyboard: Keyboard;
     monitorScreen: MonitorScreen;
     coffeeSteam: CoffeeSteam;
     cursor: Cursor;
@@ -26,12 +29,12 @@ export default class World {
         this.application = new Application();
         this.scene = this.application.scene;
         this.resources = this.application.resources;
-        // Wait for resources
+
         this.resources.on('ready', () => {
-            // Setup
             this.environment = new Environment();
             this.decor = new Decor();
             this.computerSetup = new ComputerSetup();
+            this.keyboard = new Keyboard();
             this.monitorScreen = new MonitorScreen();
             this.coffeeSteam = new CoffeeSteam();
             this.audioManager = new AudioManager();
