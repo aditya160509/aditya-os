@@ -15,6 +15,7 @@ export default class Computer {
         this.resources = this.application.resources;
 
         this.bakeModel();
+        this.removeLegacyKeyboard();
         this.setModel();
     }
 
@@ -24,6 +25,16 @@ export default class Computer {
             this.resources.items.texture.computerSetupTexture,
             900
         );
+    }
+
+    private removeLegacyKeyboard() {
+        const model = this.bakedModel.getModel();
+        const keyboard = model.getObjectByName('keyboard');
+        if (!keyboard) return;
+
+        // Keep the rest of the baked computer model unchanged, but remove the
+        // original keyboard so the replacement does not z-fight or overlap it.
+        keyboard.parent?.remove(keyboard);
     }
 
     setModel() {
