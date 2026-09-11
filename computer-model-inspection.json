@@ -1,0 +1,154 @@
+{
+  "defaultScene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "index": 0,
+      "name": "monitor_base",
+      "mesh": 0,
+      "meshName": "monitor01b.001_Cube.002",
+      "translation": null,
+      "rotation": null,
+      "scale": null,
+      "children": null,
+      "primitives": [
+        {
+          "position": {
+            "min": [
+              -0.8557329773902893,
+              0.006369162350893021,
+              -0.8138359785079956
+            ],
+            "max": [
+              0.8556999564170837,
+              1.788371205329895,
+              0.5908668041229248
+            ],
+            "count": 329
+          }
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "name": "computer",
+      "mesh": 1,
+      "meshName": "computer01b.001_Cube.018",
+      "translation": null,
+      "rotation": null,
+      "scale": null,
+      "children": null,
+      "primitives": [
+        {
+          "position": {
+            "min": [
+              -0.8456031084060669,
+              -0.49471092224121094,
+              -0.9596078395843506
+            ],
+            "max": [
+              0.8903663158416748,
+              0.019176363945007324,
+              0.8290596008300781
+            ],
+            "count": 254
+          }
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "name": "keyboard",
+      "mesh": 2,
+      "meshName": "keyboard01b.001_Cube.021",
+      "translation": null,
+      "rotation": null,
+      "scale": null,
+      "children": null,
+      "primitives": [
+        {
+          "position": {
+            "min": [
+              -1.110032558441162,
+              -0.4989674687385559,
+              1.0983318090438843
+            ],
+            "max": [
+              0.6673833727836609,
+              -0.3557460606098175,
+              1.7522733211517334
+            ],
+            "count": 1944
+          }
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "name": "mouse",
+      "mesh": 3,
+      "meshName": "mouse01b.001_Cube.012",
+      "translation": null,
+      "rotation": null,
+      "scale": null,
+      "children": null,
+      "primitives": [
+        {
+          "position": {
+            "min": [
+              0.7585417628288269,
+              -0.49308690428733826,
+              1.1787548065185547
+            ],
+            "max": [
+              1.0766470432281494,
+              -0.3403218686580658,
+              1.7211236953735352
+            ],
+            "count": 78
+          }
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "name": "cables",
+      "mesh": 4,
+      "meshName": "computer01_cables2.001_CUNurbsPath.009",
+      "translation": null,
+      "rotation": null,
+      "scale": null,
+      "children": null,
+      "primitives": [
+        {
+          "position": {
+            "min": [
+              -1.0189993381500244,
+              -0.5048647522926331,
+              -1.2903447151184082
+            ],
+            "max": [
+              1.1327871084213257,
+              0.5712857842445374,
+              1.227782964706421
+            ],
+            "count": 545
+          }
+        }
+      ]
+    }
+  ],
+  "meshCount": 5,
+  "extensionsUsed": []
+}
