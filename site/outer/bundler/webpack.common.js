@@ -13,7 +13,16 @@ module.exports = {
     devtool: 'source-map',
     plugins: [
         new CopyWebpackPlugin({
-            patterns: [{ from: path.resolve(__dirname, '../static') }],
+            patterns: [
+                { from: path.resolve(__dirname, '../static') },
+                {
+                    from: path.resolve(
+                        __dirname,
+                        '../node_modules/three/examples/js/libs/draco/gltf'
+                    ),
+                    to: 'draco',
+                },
+            ],
         }),
         new HtmlWebpackPlugin({
             template: path.resolve(__dirname, '../src/index.html'),
@@ -29,7 +38,6 @@ module.exports = {
     },
     module: {
         rules: [
-            // HTML
             {
                 test: /\.(html)$/,
                 use: ['html-loader'],
@@ -39,20 +47,15 @@ module.exports = {
                 use: 'ts-loader',
                 exclude: /node_modules/,
             },
-            // JS
             {
                 test: /\.tsx$/,
                 exclude: /node_modules/,
                 use: ['babel-loader'],
             },
-
-            // CSS
             {
                 test: /\.css$/,
                 use: [MiniCSSExtractPlugin.loader, 'css-loader'],
             },
-
-            // Images
             {
                 test: /\.(jpg|png|gif|svg)$/,
                 type: 'asset/resource',
@@ -60,7 +63,6 @@ module.exports = {
                     filename: 'assets/images/[hash][ext]',
                 },
             },
-            // Audio
             {
                 test: /\.(mp3|wav)$/,
                 loader: 'file-loader',
@@ -68,7 +70,6 @@ module.exports = {
                     name: '[path][name].[ext]',
                 },
             },
-            // Fonts
             {
                 test: /\.(ttf|eot|woff|woff2)$/,
                 type: 'asset/resource',
@@ -76,7 +77,6 @@ module.exports = {
                     filename: 'assets/fonts/[hash][ext]',
                 },
             },
-            // Shaders
             {
                 test: /\.(glsl|vs|fs|vert|frag)$/,
                 exclude: /node_modules/,
