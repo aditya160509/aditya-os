@@ -93,7 +93,6 @@ export default class Renderer {
                 uniforms: this.uniforms,
                 transparent: true,
                 opacity: 0.12,
-                blending: THREE.SoftLightBlending,
                 depthTest: false,
                 depthWrite: false,
             })
